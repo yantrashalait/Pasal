@@ -6,6 +6,9 @@
 #   * Remove `managed = False` lines if you wish to allow Django to create, modify, and delete the table
 # Feel free to rename the models, but don't rename db_table values or field names.
 from django.db import models
+from django.contrib.auth.base_user import AbstractBaseUser
+from datetime import datetime
+from .managers import UserManager
 
 
 class TblAccessorySpec(models.Model):
@@ -19,7 +22,7 @@ class TblAccessorySpec(models.Model):
 
 class TblBrands(models.Model):
     brand_id = models.AutoField(primary_key=True)
-    activate = models.TextField()  # This field type is a guess.
+    activate = models.BooleanField()  # This field type is a guess.
     brand_name = models.CharField(max_length=255, blank=True, null=True)
     facebook_link = models.CharField(max_length=255, blank=True, null=True)
     google_plus_link = models.CharField(max_length=255, blank=True, null=True)
@@ -205,9 +208,9 @@ class TblMainAds(models.Model):
     ad_title = models.CharField(max_length=255)
     added_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    expired = models.TextField()  # This field type is a guess.
+    expired = models.BooleanField()  # This field type is a guess.
     expiry_date = models.DateField(blank=True, null=True)
-    featured = models.TextField()  # This field type is a guess.
+    featured = models.BooleanField()  # This field type is a guess.
     price = models.BigIntegerField()
     price_negotiable = models.CharField(max_length=255, blank=True, null=True)
     view_count = models.IntegerField()
@@ -218,6 +221,9 @@ class TblMainAds(models.Model):
     class Meta:
         managed = False
         db_table = 'tbl_main_ads'
+
+    def get_foreign_fields(self):
+        return [getattr(self, f.name) for f in self._meta.fields if type(f) == models.fields.related.ForeignKey]
 
 
 class TblModels(models.Model):
@@ -322,7 +328,7 @@ class TblRealestateSpec(models.Model):
 
 class TblReplies(models.Model):
     reply_id = models.AutoField(primary_key=True)
-    replied = models.TextField()  # This field type is a guess.
+    replied = models.BooleanField()  # This field type is a guess.
     reply_comment = models.CharField(max_length=255, blank=True, null=True)
     question = models.ForeignKey(TblQuestions, models.DO_NOTHING, unique=True, blank=True, null=True)
 
@@ -419,14 +425,22 @@ class TblUserRoles(models.Model):
         db_table = 'tbl_user_roles'
 
 
-class TblUsers(models.Model):
+class TblUsers(AbstractBaseUser):
     email = models.CharField(primary_key=True, max_length=100)
-    enabled = models.TextField()  # This field type is a guess.
+    enabled = models.BooleanField()  # This field type is a guess.
     password = models.CharField(max_length=30)
 
+    REQUIRED_FIELDS = []
+    USERNAME_FIELD = 'email'
+
+    objects = UserManager()
     class Meta:
         managed = False
         db_table = 'tbl_users'
+
+    @property
+    def last_login(self):
+        return datetime.now()
 
 
 class TblWarranty(models.Model):

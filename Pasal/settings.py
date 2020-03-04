@@ -25,7 +25,7 @@ SECRET_KEY = 'w3(&35_#or+jiggq48+-xzl8_@cg7(n#-kyxix+%%jm)e@3c@j'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
+    'rest_framework.authtoken'
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'api.authentication_backends.MyAuthBackend',
+    # 'django.contrib.auth.backends.ModelBackend',
 ]
 
 ROOT_URLCONF = 'Pasal.urls'
@@ -80,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
             'database': 'pasal',
-            'user': 'root',
+            'user': 'sanip',
             'password': 'Anku21dam',
         },
     }
@@ -118,6 +124,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+AUTH_USER_MODEL = 'api.TblUsers'
 
 
 # Static files (CSS, JavaScript, Images)
