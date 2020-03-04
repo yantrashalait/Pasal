@@ -15,18 +15,11 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'w3(&35_#or+jiggq48+-xzl8_@cg7(n#-kyxix+%%jm)e@3c@j'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
-
+SECRET_KEY = ''
 
 # Application definition
 
@@ -78,19 +71,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Pasal.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'database': 'pasal',
-            'user': 'sanip',
-            'password': 'Anku21dam',
-        },
-    }
-}
 
 
 # Password validation
@@ -127,8 +108,7 @@ USE_TZ = True
 
 AUTH_USER_MODEL = 'api.TblUsers'
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.2/howto/static-files/
-
-STATIC_URL = '/static/'
+try:
+    from .local_settings import *
+except ImportError:
+    pass
