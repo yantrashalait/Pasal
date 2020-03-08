@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds
+from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, TblCustomer
 
 base_url = 'https://pasal.yantrashala.com/api/v1'
 
@@ -96,15 +96,20 @@ class BrandSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CustomerDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TblCustomer
+        fields = '__all__'
+
+
 class MainAdsDetailSerializer(serializers.ModelSerializer):
     specs = serializers.SerializerMethodField()
-    customer = serializers.ReadOnlyField(source="customer.email.email")
+    customer = CustomerDetailSerializer()
     model = serializers.ReadOnlyField(source="model.model_name")
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
 
     class Meta:
         model = TblMainAds
-        # fields = TblMainAds._meta.get_fields()
         fields = ('main_ads_id', 'ad_run_days', 'ad_title', 'added_date', 'description',
         'expired', 'expiry_date', 'featured', 'price', 'price_negotiable', 'view_count',
         'customer', 'sub_category', 'model', 'specs')
@@ -123,6 +128,6 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
         for field in related_models:
             if field.related_model.objects.filter(main_ads=obj).exists():
                 datas = field.related_model.objects.filter(main_ads=obj).values()
-                data[field.related_model._meta.model_name.replace("tbl", "")] = datas[0]
+                data[field.related_model._meta.model_name.replace("tbl", "")] = datas
         # objects = [{f.related_model._meta.model_name.replace("tbl", "") : f.related_model.objects.filter(main_ads=obj).values() for f in related_models}]
         return data
