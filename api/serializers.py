@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds
 
-base_url = 'http://pasal.yantrashala.com/api/v1'
+base_url = 'https://pasal.yantrashala.com/api/v1'
 
 
 class CategorySerializer(serializers.ModelSerializer):
