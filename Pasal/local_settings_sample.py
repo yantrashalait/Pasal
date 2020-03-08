@@ -13,9 +13,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
-            'database': 'pasal',
-            'user': 'sanip',
-            'password': 'Anku21dam',
+            'database': '',
+            'user': '',
+            'password': '',
         },
     }
 }
