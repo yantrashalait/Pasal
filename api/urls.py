@@ -10,6 +10,12 @@ router.register(r'brand', views.BrandViewSet, basename='brand')
 urlpatterns = [
     path('api-auth-token', views.login),
 
+    # for index page
+    path('featured/main-ads/list', views.FeaturedMainAdsViewSet.as_view(), name='featured-main-ads'),
+
+    # for all categories in category list page
+    path('category/all', views.AllCategoryListViewSet.as_view(), name="category-all"),
+
     path('category/list', views.CategoryViewSet.as_view(), name='category-list'),
     path('category/<int:category_id>', views.CategorySingleViewSet.as_view(), name='cat-single'),
     path('category/<int:category_id>/sub-category/list', views.SubCategoryViewSet.as_view(), name='sub-cat-list'),

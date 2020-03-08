@@ -13,13 +13,14 @@ from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpda
     RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from .serializers import CategorySerializer, CategorySingleSerializer, BrandSerializer, \
     SubCategoryListSerializer, SubCategoryDetailSerializer, ProductModelListSerializer, \
-    ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer
+    ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer
 from django.db import transaction
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from django.contrib.auth import get_user_model
 
 from .models import TblUsers
+from datetime import datetime
 
 User = get_user_model()
 
@@ -47,6 +48,30 @@ def login(request):
         },
         status=HTTP_200_OK
     )
+
+
+class FeaturedMainAdsViewSet(ListAPIView):
+    serializer_class = MainAdsListSerializer
+    queryset = TblMainAds.objects.filter(featured=True, expired=False) # check expiry date
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class AllCategoryListViewSet(ListAPIView):
+    serializer_class = AllCategorySerializer
+    queryset = TblCategories.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
 
 
 class CategoryViewSet(ListAPIView):

@@ -1,7 +1,18 @@
 from rest_framework import serializers
-from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, TblCustomer
+from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, TblCustomer, TblPictures
 
 base_url = 'https://pasal.yantrashala.com/api/v1'
+
+
+class AllCategorySerializer(serializers.ModelSerializer):
+    sub_categories = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TblCategories
+        fields = ('category_id', 'category_name', 'sub_categories')
+
+    def get_sub_categories(self, obj):
+        return TblSubCategories.objects.filter(category=obj).values()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -38,20 +49,30 @@ class CategorySingleSerializer(serializers.ModelSerializer):
         return base_url + '/category/' + str(obj.category_id) + '/sub-category/list'
 
 
+class MainAdsPictures(serializers.ModelSerializer):
+    class Meta:
+        model = TblPictures
+        fields = '__all__'
+
+
 class MainAdsListSerializer(serializers.ModelSerializer):
     model = serializers.ReadOnlyField(source="model.model_name")
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
     customer = serializers.ReadOnlyField(source="customer.email.email")
     detail_url = serializers.SerializerMethodField()
+    pictures = serializers.SerializerMethodField()
 
     class Meta:
         model = TblMainAds
         fields = ('main_ads_id', 'ad_run_days', 'ad_title', 'added_date', 'description',
         'expired', 'expiry_date', 'featured', 'price', 'price_negotiable', 'view_count',
-        'customer', 'sub_category', 'model', 'detail_url')
+        'customer', 'sub_category', 'model', 'detail_url', 'pictures')
 
     def get_detail_url(self, obj):
         return base_url + '/main-ads/' + str(obj.main_ads_id)
+
+    def get_pictures(self, obj):
+        return TblPictures.objects.filter(main_ads=obj).values()
 
 
 class ProductModelListSerializer(serializers.ModelSerializer):
