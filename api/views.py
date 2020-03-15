@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
+from rest_framework import permissions
 
 from django.shortcuts import render, get_object_or_404
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds
@@ -51,6 +52,7 @@ def login(request):
 
 
 class FeaturedMainAdsViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = MainAdsListSerializer
     queryset = TblMainAds.objects.filter(featured=True, expired=False) # check expiry date
 
@@ -63,6 +65,7 @@ class FeaturedMainAdsViewSet(ListAPIView):
 
 
 class AllCategoryListViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = AllCategorySerializer
     queryset = TblCategories.objects.all()
 
@@ -75,6 +78,7 @@ class AllCategoryListViewSet(ListAPIView):
 
 
 class CategoryViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = CategorySerializer
     queryset = TblCategories.objects.all()
 
@@ -87,6 +91,7 @@ class CategoryViewSet(ListAPIView):
 
 
 class CategorySingleViewSet(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = CategorySingleSerializer
 
     def get_object(self):
@@ -104,6 +109,7 @@ class CategorySingleViewSet(RetrieveAPIView):
     For listing subcategories
 """
 class SubCategoryViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = SubCategoryListSerializer
 
     def get_queryset(self, *args, **kwargs):
@@ -118,6 +124,7 @@ class SubCategoryViewSet(ListAPIView):
 
 
 class SubCategorySingleViewSet(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return TblSubCategories.objects.get(sub_category_id=self.kwargs.get('sub_category_id'))
@@ -131,6 +138,7 @@ class SubCategorySingleViewSet(RetrieveAPIView):
 
 
 class ModelListViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProductModelListSerializer
 
     def get_queryset(self, *args, **kwargs):
@@ -146,6 +154,7 @@ class ModelListViewSet(ListAPIView):
 
 
 class ModelDetailViewSet(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = ProductModelDetailSerializer
 
     def get_object(self, *args, **kwargs):
@@ -160,11 +169,13 @@ class ModelDetailViewSet(RetrieveAPIView):
 
 
 class BrandViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = BrandSerializer
     queryset = TblBrands.objects.all()
 
 
 class MainAdsViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = MainAdsListSerializer
 
     def get_queryset(self, *args, **kwargs):
@@ -180,6 +191,7 @@ class MainAdsViewSet(ListAPIView):
 
 
 class MainAdsDetailViewSet(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = MainAdsDetailSerializer
 
     def get_object(self, *args, **kwargs):
