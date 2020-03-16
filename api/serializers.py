@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, TblCustomer, TblPictures
+from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
+    TblCustomer, TblPictures, TblHousings, TblCars, TblQuestions, TblReplies
 
 base_url = 'https://pasal.yantrashala.com/api/v1'
 
@@ -53,6 +54,28 @@ class MainAdsPictures(serializers.ModelSerializer):
     class Meta:
         model = TblPictures
         fields = '__all__'
+
+
+class CustomerDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TblCustomer
+        fields = '__all__'
+
+
+class RepliesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TblReplies
+        fields= ('reply_id', 'replied', 'reply_comment')
+
+
+class QuestionsSerializer(serializers.ModelSerializer):
+    asked_by = CustomerDetailSerializer()
+    asked_to = CustomerDetailSerializer()
+    tblreplies_set = RepliesSerializer(many=True)
+
+    class Meta:
+        model = TblQuestions
+        fields = ('question_id', 'asked_on', 'question_comment', 'asked_by', 'asked_to', 'tblreplies_set')
 
 
 class MainAdsListSerializer(serializers.ModelSerializer):
@@ -117,23 +140,18 @@ class BrandSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class CustomerDetailSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = TblCustomer
-        fields = '__all__'
-
-
 class MainAdsDetailSerializer(serializers.ModelSerializer):
     specs = serializers.SerializerMethodField()
     customer = CustomerDetailSerializer()
     model = serializers.ReadOnlyField(source="model.model_name")
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
+    tblquestions_set = QuestionsSerializer(many=True)
 
     class Meta:
         model = TblMainAds
         fields = ('main_ads_id', 'ad_run_days', 'ad_title', 'added_date', 'description',
         'expired', 'expiry_date', 'featured', 'price', 'price_negotiable', 'view_count',
-        'customer', 'sub_category', 'model', 'specs')
+        'customer', 'sub_category', 'model', 'specs', 'tblquestions_set')
 
     def get_specs(self, obj):
         fields=[]
@@ -152,3 +170,66 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
                 data[field.related_model._meta.model_name.replace("tbl", "")] = datas
         # objects = [{f.related_model._meta.model_name.replace("tbl", "") : f.related_model.objects.filter(main_ads=obj).values() for f in related_models}]
         return data
+
+
+class HousingListSerializer(serializers.ModelSerializer):
+    detail_url = serializers.SerializerMethodField()
+    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    pictures = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TblHousings
+        fields = ('housing_id', 'brand', 'area', 'available', 'description', 'housing_name', 'rent_per_sqft', 'type', 'detail_url', 'pictures')
+
+    def get_detail_url(self, obj):
+        return base_url + '/housing/detail/' + str(obj.housing_id)
+
+    def get_pictures(self, obj):
+        return TblPictures.objects.filter(housing=obj).values('picture_name')
+
+
+class HousingDetailSerializer(serializers.ModelSerializer):
+    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    pictures = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TblHousings
+        fields = ('housing_id', 'brand', 'added_date', 'appliances', 'area', 'available',
+        'bathroom', 'bedroom', 'cooling', 'dates', 'description', 'flooring', 'heating',
+        'housing_name', 'laundry', 'others', 'parking', 'pets', 'price', 'purpose',
+        'rent_per_sqft', 'type', 'unit_floor', 'pictures')
+
+    def get_pictures(self, obj):
+        return TblPictures.objects.filter(housing=obj).values('picture_name')
+
+
+class CarListSerializer(serializers.ModelSerializer):
+    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    detail_url = serializers.SerializerMethodField()
+    pictures = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TblCars
+        fields = ('car_id', 'car_name', 'color', 'description', 'engine', 'make_year',
+        'price', 'type', 'brand', 'detail_url', 'pictures')
+
+    def get_detail_url(self, obj):
+        return base_url + '/car/detail/' + str(obj.car_id)
+
+    def get_pictures(self, obj):
+        return TblPictures.objects.filter(car=obj).values('picture_name')
+
+class CarDetailSerializer(serializers.ModelSerializer):
+    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    pictures = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TblCars
+        fields = ('car_id', 'car_name', 'color', 'description', 'engine', 'features',
+        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures')
+
+    def get_detail_url(self, obj):
+        return base_url + '/car/detail/' + str(obj.car_id)
+
+    def get_pictures(self, obj):
+        return TblPictures.objects.filter(car=obj).values('picture_name')

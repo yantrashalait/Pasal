@@ -5,7 +5,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework import permissions
 
 from django.shortcuts import render, get_object_or_404
-from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds
+from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
+TblHousings, TblCars
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -14,7 +15,8 @@ from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpda
     RetrieveUpdateDestroyAPIView, RetrieveAPIView
 from .serializers import CategorySerializer, CategorySingleSerializer, BrandSerializer, \
     SubCategoryListSerializer, SubCategoryDetailSerializer, ProductModelListSerializer, \
-    ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer
+    ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer,\
+    HousingListSerializer, HousingDetailSerializer, CarListSerializer, CarDetailSerializer
 from django.db import transaction
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
 
@@ -22,6 +24,8 @@ from django.contrib.auth import get_user_model
 
 from .models import TblUsers
 from datetime import datetime
+
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -58,6 +62,66 @@ class FeaturedMainAdsViewSet(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class HousingListViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = HousingListSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        return TblHousings.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class HousingDetailViewSet(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = HousingDetailSerializer
+
+    def get_object(self, *args, **kwargs):
+        return get_object_or_404(TblHousings, housing_id=self.kwargs.get('housing_id'))
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class CarListViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CarListSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        return TblCars.objects.all()
+
+    def get(self, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class CarDetailViewSet(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CarDetailSerializer
+
+    def get_object(self, *args, **kwargs):
+        return get_object_or_404(TblCars, car_id=self.kwargs.get('car_id'))
+
+    def get(self, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
         return Response({
             'status': True,
             'data': serializer.data
@@ -200,6 +264,22 @@ class MainAdsDetailViewSet(RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object())
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class SearchViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MainAdsListSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        key = self.request.GET.get('search', '')
+        return TblMainAds.objects.filter(Q(ad_title__icontains=key)|Q(sub_category__sub_category_name__icontains=key)|Q(sub_category__category__category_name__icontains=key))
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response({
             'status': True,
             'data': serializer.data

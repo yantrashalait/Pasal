@@ -12,6 +12,10 @@ urlpatterns = [
 
     # for index page
     path('featured/main-ads/list', views.FeaturedMainAdsViewSet.as_view(), name='featured-main-ads'),
+    path('housing/list', views.HousingListViewSet.as_view(), name="housing-list"),
+    path('housing/detail/<int:housing_id>', views.HousingDetailViewSet.as_view(), name="housing-detail"),
+    path('car/list', views.CarListViewSet.as_view(), name="car-list"),
+    path('car/detail/<int:car_id>', views.CarDetailViewSet.as_view(), name="car-detail"),
 
     # for all categories in category list page
     path('category/all', views.AllCategoryListViewSet.as_view(), name="category-all"),
@@ -26,7 +30,7 @@ urlpatterns = [
 
     path('main-ads/<int:main_ads_id>', views.MainAdsDetailViewSet.as_view(), name="main-ads-list"),
 
-
+    path('search', views.SearchViewSet.as_view(), name="search"),
 ]
 
 urlpatterns += router.urls
