@@ -166,6 +166,8 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
         data = {}
         for field in related_models:
             if field.related_model.objects.filter(main_ads=obj).exists():
+                if field.related_model._meta.model_name == "tblquestions":
+                    continue
                 datas = field.related_model.objects.filter(main_ads=obj).values()
                 data[field.related_model._meta.model_name.replace("tbl", "")] = datas
         # objects = [{f.related_model._meta.model_name.replace("tbl", "") : f.related_model.objects.filter(main_ads=obj).values() for f in related_models}]
