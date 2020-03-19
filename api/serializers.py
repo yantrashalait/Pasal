@@ -146,12 +146,16 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
     model = serializers.ReadOnlyField(source="model.model_name")
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
     tblquestions_set = QuestionsSerializer(many=True)
+    pictures = serializers.SerializerMethodField()
 
     class Meta:
         model = TblMainAds
         fields = ('main_ads_id', 'ad_run_days', 'ad_title', 'added_date', 'description',
         'expired', 'expiry_date', 'featured', 'price', 'price_negotiable', 'view_count',
-        'customer', 'sub_category', 'model', 'specs', 'tblquestions_set')
+        'customer', 'sub_category', 'model', 'specs', 'tblquestions_set', 'pictures')
+
+    def get_pictures(self, obj):
+        return TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
 
     def get_specs(self, obj):
         fields=[]
@@ -168,8 +172,51 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
             if field.related_model.objects.filter(main_ads=obj).exists():
                 if field.related_model._meta.model_name == "tblquestions":
                     continue
+                if field.related_model._meta.model_name == "tblpictures":
+                    continue
+                if field.related_model._meta.model_name == "tblwishlist":
+                    continue
                 datas = field.related_model.objects.filter(main_ads=obj).values()
-                data[field.related_model._meta.model_name.replace("tbl", "")] = datas
+                if field.related_model._meta.model_name == "tblaccessoryspec":
+                    data["Accessory Specification"] = datas
+                if field.related_model._meta.model_name == "tblbusinessspec":
+                    data["Business Specification"] = datas
+                if field.related_model._meta.model_name == "tblcarspec":
+                    data["Car Specification"] = datas
+                if field.related_model._meta.model_name == "tblclothingspec":
+                    data["Clothing Specification"] = datas
+                if field.related_model._meta.model_name == "tblcommonspec":
+                    data["Common Specification"] = datas
+                if field.related_model._meta.model_name == "tbldelivery":
+                    data["Delivery Details"] = datas
+                if field.related_model._meta.model_name == "tblhandsetspec":
+                    data["Handset Specification"] = datas
+                if field.related_model._meta.model_name == "tbllaptopspec":
+                    data["Laptop Specification"] = datas
+                if field.related_model._meta.model_name == "tblmonitorspec":
+                    data["Monitor Specification"] = datas
+                if field.related_model._meta.model_name == "tblmotocyclespec":
+                    data["MotorCycle Specification"] = datas
+                if field.related_model._meta.model_name == "tblnetworkingequipmentspec":
+                    data["Networking Equipment Specification"] = datas
+                if field.related_model._meta.model_name == "tblprinterspec":
+                    data["Printer Specification"] = datas
+                if field.related_model._meta.model_name == "tblrealestatespec":
+                    data["Real Estate Specification"] = datas
+                if field.related_model._meta.model_name == "tblshoesspec":
+                    data["Shoes Specification"] = datas
+                if field.related_model._meta.model_name == "tblsoftwarespec":
+                    data["Software Specification"] = datas
+                if field.related_model._meta.model_name == "tblsportspec":
+                    data["Sport Specification"] = datas
+                if field.related_model._meta.model_name == "tblstoragespec":
+                    data["Storage Specification"] = datas
+                if field.related_model._meta.model_name == "tbltabletspec":
+                    data["Tablet Specification"] = datas
+                if field.related_model._meta.model_name == "tblwarranty":
+                    data["Warranty Details"] = datas
+
+                # data[field.related_model._meta.model_name.replace("tbl", "")] = datas
         # objects = [{f.related_model._meta.model_name.replace("tbl", "") : f.related_model.objects.filter(main_ads=obj).values() for f in related_models}]
         return data
 
