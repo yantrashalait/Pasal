@@ -6,7 +6,7 @@ from rest_framework import permissions
 
 from django.shortcuts import render, get_object_or_404
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
-TblHousings, TblCars
+TblHousings, TblCars, TblCustomer, TblUsers
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -16,13 +16,11 @@ from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpda
 from .serializers import CategorySerializer, CategorySingleSerializer, BrandSerializer, \
     SubCategoryListSerializer, SubCategoryDetailSerializer, ProductModelListSerializer, \
     ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer,\
-    HousingListSerializer, HousingDetailSerializer, CarListSerializer, CarDetailSerializer
+    HousingListSerializer, HousingDetailSerializer, CarListSerializer, CarDetailSerializer, CustomerDetailSerializer
 from django.db import transaction
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from django.contrib.auth import get_user_model
-
-from .models import TblUsers
 from datetime import datetime
 
 from django.db.models import Q
@@ -280,6 +278,21 @@ class SearchViewSet(ListAPIView):
 
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class UserProfileViewSet(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CustomerDetailSerializer
+
+    def get_object(self, *args, **kwargs):
+        return TblCustomer.objects.get(email=self.request.user)
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
         return Response({
             'status': True,
             'data': serializer.data

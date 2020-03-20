@@ -31,6 +31,8 @@ urlpatterns = [
     path('main-ads/<int:main_ads_id>', views.MainAdsDetailViewSet.as_view(), name="main-ads-list"),
 
     path('search', views.SearchViewSet.as_view(), name="search"),
+
+    path('user/profile/', views.UserProfileViewSet.as_view(), name="user-profile"),
 ]
 
 urlpatterns += router.urls
