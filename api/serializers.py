@@ -1,8 +1,37 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
-    TblCustomer, TblPictures, TblHousings, TblCars, TblQuestions, TblReplies
+    TblCustomer, TblPictures, TblHousings, TblCars, TblQuestions, TblReplies, TblUsers
+from django.core.exceptions import ValidationError
 
 base_url = 'https://pasal.yantrashala.com/api/v1'
+
+User = get_user_model()
+
+class RegisterSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=255, required=True)
+    password1 = serializers.CharField(max_length=255, required=True)
+    password2 = serializers.CharField(max_length=255, required=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'password1', 'password2')
+
+    def validate(self, data):
+        if data['password1'] != data['password2']:
+            raise ValidationError('Passwords must match.')
+        return data
+    
+    def validate_email(self, email):
+        if User.objects.filter(email=email).exists():
+            raise ValidationError("User with this email already exists.")
+        return email
+    
+    def create(self, validated_data):
+        email = validated_data['email']
+        password = validated_data['password1']
+        user = User.objects.create(email=email, enabled=False, password=password)
+        return user
 
 
 class AllCategorySerializer(serializers.ModelSerializer):
@@ -57,6 +86,11 @@ class MainAdsPictures(serializers.ModelSerializer):
 
 
 class CustomerDetailSerializer(serializers.ModelSerializer):
+    verified = serializers.ReadOnlyField()
+    customer_id = serializers.ReadOnlyField()
+    added_date = serializers.ReadOnlyField()
+    email = serializers.ReadOnlyField(source="email.email")
+
     class Meta:
         model = TblCustomer
         fields = '__all__'

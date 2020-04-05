@@ -3,10 +3,11 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework import permissions
+from rest_framework.views import APIView
 
 from django.shortcuts import render, get_object_or_404
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
-TblHousings, TblCars, TblCustomer, TblUsers
+TblHousings, TblCars, TblCustomer, TblUsers, TblUserRoles
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -16,7 +17,8 @@ from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpda
 from .serializers import CategorySerializer, CategorySingleSerializer, BrandSerializer, \
     SubCategoryListSerializer, SubCategoryDetailSerializer, ProductModelListSerializer, \
     ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer,\
-    HousingListSerializer, HousingDetailSerializer, CarListSerializer, CarDetailSerializer, CustomerDetailSerializer
+    HousingListSerializer, HousingDetailSerializer, CarListSerializer, CarDetailSerializer, CustomerDetailSerializer,\
+    RegisterSerializer
 from django.db import transaction
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
 
@@ -51,6 +53,36 @@ def login(request):
         },
         status=HTTP_200_OK
     )
+
+
+class RegisterViewSet(APIView):
+    def post(self, request, format=None):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+
+            # create role for user
+            TblUserRoles.objects.create(email=user, role="ROLE_USER")
+
+            # create user profile
+            TblCustomer.objects.create(
+                email=user, 
+                added_date=datetime.now(),
+                name="", 
+                phone="",
+                verified=False, 
+                city_name="")
+
+            if user:
+                return Response({
+                    'status': True,
+                    'email': user.email
+                }, status=HTTP_200_OK)
+        else:
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
 
 
 class FeaturedMainAdsViewSet(ListAPIView):
@@ -284,7 +316,7 @@ class SearchViewSet(ListAPIView):
         }, status=HTTP_200_OK)
 
 
-class UserProfileViewSet(RetrieveAPIView):
+class UserProfileViewSet(RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = CustomerDetailSerializer
 
@@ -297,3 +329,17 @@ class UserProfileViewSet(RetrieveAPIView):
             'status': True,
             'data': serializer.data
         }, status=HTTP_200_OK)
+    
+    def put(self, request, *args, **kawrgs):
+        serializer = self.get_serializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            })
+        self.perform_update(serializer)
+        return Response({
+            'status': True,
+            'msg': 'Updated Successfully',
+            'data': serializer.data
+        })

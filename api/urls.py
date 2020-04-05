@@ -10,6 +10,8 @@ router.register(r'brand', views.BrandViewSet, basename='brand')
 urlpatterns = [
     path('api-auth-token', views.login),
 
+    path('register', views.RegisterViewSet.as_view(), name="register"),
+
     # for index page
     path('featured/main-ads/list', views.FeaturedMainAdsViewSet.as_view(), name='featured-main-ads'),
     path('housing/list', views.HousingListViewSet.as_view(), name="housing-list"),
@@ -32,7 +34,7 @@ urlpatterns = [
 
     path('search', views.SearchViewSet.as_view(), name="search"),
 
-    path('user/profile/', views.UserProfileViewSet.as_view(), name="user-profile"),
+    path('user/profile', views.UserProfileViewSet.as_view(), name="user-profile"),
 ]
 
 urlpatterns += router.urls
