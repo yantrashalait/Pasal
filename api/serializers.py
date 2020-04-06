@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
-    TblCustomer, TblPictures, TblHousings, TblCars, TblQuestions, TblReplies, TblUsers
+    TblCustomer, TblPictures, TblHousings, TblCars, TblQuestions, TblReplies, TblUsers, TblCommonSpec
 from django.core.exceptions import ValidationError
 
 base_url = 'https://pasal.yantrashala.com/api/v1'
@@ -118,18 +118,43 @@ class MainAdsListSerializer(serializers.ModelSerializer):
     customer = serializers.ReadOnlyField(source="customer.email.email")
     detail_url = serializers.SerializerMethodField()
     pictures = serializers.SerializerMethodField()
+    model_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblMainAds
         fields = ('main_ads_id', 'ad_run_days', 'ad_title', 'added_date', 'description',
         'expired', 'expiry_date', 'featured', 'price', 'price_negotiable', 'view_count',
-        'customer', 'sub_category', 'model', 'detail_url', 'pictures')
+        'customer', 'sub_category', 'model', 'detail_url', 'pictures', 'model_name')
 
     def get_detail_url(self, obj):
         return base_url + '/main-ads/' + str(obj.main_ads_id)
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(main_ads=obj).values()
+    
+    def get_model_name(self, obj):
+        fields=[]
+        related_models = []
+        for model in obj._meta.get_fields():
+            if model.get_internal_type() == "ForeignKey":
+                try:
+                    if model.field.get_internal_type() == "ForeignKey":
+                        related_models.append(model)
+                except:
+                    pass
+        for field in related_models:
+            if field.related_model.objects.filter(main_ads=obj).exists():
+                if field.related_model._meta.model_name == "tblquestions":
+                    continue
+                if field.related_model._meta.model_name == "tblpictures":
+                    continue
+                if field.related_model._meta.model_name == "tblwishlist":
+                    continue
+
+                model_name = field.related_model._meta.model_name
+
+                if "spec"in model_name and model_name != "tblcommonspec":
+                    return model_name
 
 
 class ProductModelListSerializer(serializers.ModelSerializer):
@@ -211,6 +236,11 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
                 if field.related_model._meta.model_name == "tblwishlist":
                     continue
                 datas = field.related_model.objects.filter(main_ads=obj).values()
+
+                model_name = field.related_model._meta.model_name
+
+                if "spec"in model_name and model_name != "tblcommonspec":
+                    print(field.related_model)
                 if field.related_model._meta.model_name == "tblaccessoryspec":
                     data["Accessory Specification"] = datas
                 if field.related_model._meta.model_name == "tblbusinessspec":
@@ -316,3 +346,52 @@ class CarDetailSerializer(serializers.ModelSerializer):
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(car=obj).values('picture_name')
+
+
+class MainAdsCreateSerializer(serializers.ModelSerializer):
+    main_ads_id = serializers.ReadOnlyField()
+    added_date = serializers.ReadOnlyField()
+    expired = serializers.ReadOnlyField()
+    view_count = serializers.ReadOnlyField()
+    customer = serializers.ReadOnlyField(source="customer.email.email")
+    sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
+    model = serializers.ReadOnlyField(source="model.model_name")
+    next_url = serializers.SerializerMethodField(read_only=True)
+    
+    class Meta:
+        model = TblMainAds
+        fields = ('main_ads_id', 'added_date', 'expired', 'view_count', 'customer', 
+        'sub_category', 'model', 'ad_run_days', 'ad_title', 'description', 'expiry_date',
+        'featured', 'price', 'price_negotiable', 'next_url')
+        extra_kwargs = {
+            'ad_run_days': {'required': True}, 
+            'ad_title': {'required': True},
+            'description': {'required': True},
+            'expiry_date': {'required': True},
+            'featured': {'required': True},
+            'price': {'required': True},
+            'price_negotiable': {'required': True},
+            }
+    
+    def get_next_url(self, obj):
+        model_name = self.context.get("model_name")
+        return base_url + '/main-ads/'+ str(obj.main_ads_id) +'/common/add?model_name=' + model_name
+
+
+class MainAdsCommonSpecSerializer(serializers.ModelSerializer):
+    main_ads = serializers.ReadOnlyField(source="main_ads.main_ads_id")
+    next_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = TblCommonSpec
+        fields = '__all__'
+    
+    def get_next_url(self, obj):
+        model_name = self.context.get("model_name")
+        return base_url + '/main-ads/' + str(obj.main_ads.main_ads_id) + '/specification/add?model_name=' + model_name
+
+class GenericSpecificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = None
+    
+        
