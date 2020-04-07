@@ -470,4 +470,49 @@ class MainAdsSpecificationCreateViewSet(CreateAPIView):
                 'status': False,
                 'data': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
-        print(self.request.POST)
+        
+        spec = serializer.save()
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        spec.main_ads = main_ads
+        spec.save()
+
+        return Response({
+            'status': True,
+            'msg': 'Created Successfully.',
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+
+class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
+    def get_serializer_class(self):
+        model = apps.get_model('api', self.request.GET.get('model_name'))
+        GenericSpecificationSerializer.Meta.model = model
+        GenericSpecificationSerializer.Meta.fields = "__all__"
+        return GenericSpecificationSerializer
+    
+    def get_object(self, *args, **kwargs):
+        model = apps.get_model("api", self.request.GET.get('model_name'))
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get("main_ads_id"))
+        return model.objects.get(main_ads=main_ads)
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        self.perform_update(serializer)
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully.',
+            'data': serializer.data
+        }, status=HTTP_200_OK)

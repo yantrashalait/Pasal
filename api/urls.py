@@ -41,7 +41,7 @@ urlpatterns = [
     path('main-ads/<int:main_ads_id>/common/add', views.MainAdsCommonSpecAddViewSet.as_view(), name="main-ads-common-spec-add"),
     path('main-ads/common/<int:common_id>/detail', views.MainAdsCommonSpecEditViewSet.as_view(), name="main-ads-common-spec-detail"),
     path('main-ads/<int:main_ads_id>/specification/add', views.MainAdsSpecificationCreateViewSet.as_view(), name="main-ads-spec-create"),
-
+    path('main-ads/<int:main_ads_id>/specification/edit', views.MainAdsSpecificationEditViewSet.as_view(), name="main-ads-spec-edit"),
 ]
 
 urlpatterns += router.urls

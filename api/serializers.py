@@ -206,12 +206,13 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
     tblquestions_set = QuestionsSerializer(many=True)
     pictures = serializers.SerializerMethodField()
+    model_name = serializers.SerializerMethodField()
 
     class Meta:
         model = TblMainAds
         fields = ('main_ads_id', 'ad_run_days', 'ad_title', 'added_date', 'description',
         'expired', 'expiry_date', 'featured', 'price', 'price_negotiable', 'view_count',
-        'customer', 'sub_category', 'model', 'specs', 'tblquestions_set', 'pictures')
+        'customer', 'sub_category', 'model', 'specs', 'tblquestions_set', 'pictures', 'model_name')
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
@@ -283,6 +284,30 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
                 # data[field.related_model._meta.model_name.replace("tbl", "")] = datas
         # objects = [{f.related_model._meta.model_name.replace("tbl", "") : f.related_model.objects.filter(main_ads=obj).values() for f in related_models}]
         return data
+    
+    def get_model_name(self, obj):
+        fields=[]
+        related_models = []
+        for model in obj._meta.get_fields():
+            if model.get_internal_type() == "ForeignKey":
+                try:
+                    if model.field.get_internal_type() == "ForeignKey":
+                        related_models.append(model)
+                except:
+                    pass
+        for field in related_models:
+            if field.related_model.objects.filter(main_ads=obj).exists():
+                if field.related_model._meta.model_name == "tblquestions":
+                    continue
+                if field.related_model._meta.model_name == "tblpictures":
+                    continue
+                if field.related_model._meta.model_name == "tblwishlist":
+                    continue
+
+                model_name = field.related_model._meta.model_name
+
+                if "spec"in model_name and model_name != "tblcommonspec":
+                    return model_name
 
 
 class HousingListSerializer(serializers.ModelSerializer):
