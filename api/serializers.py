@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
-    TblCustomer, TblPictures, TblHousings, TblCars, TblQuestions, TblReplies, TblUsers, TblCommonSpec
+from .models import *
 from django.core.exceptions import ValidationError
 
 base_url = 'https://pasal.yantrashala.com/api/v1'
@@ -381,7 +380,7 @@ class MainAdsCreateSerializer(serializers.ModelSerializer):
     customer = serializers.ReadOnlyField(source="customer.email.email")
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
     model = serializers.ReadOnlyField(source="model.model_name")
-    next_url = serializers.SerializerMethodField(read_only=True)
+    model_name = serializers.SerializerMethodField(read_only=True)
     
     class Meta:
         model = TblMainAds
@@ -398,25 +397,40 @@ class MainAdsCreateSerializer(serializers.ModelSerializer):
             'price_negotiable': {'required': True},
             }
     
-    def get_next_url(self, obj):
-        model_name = self.context.get("model_name")
-        return base_url + '/main-ads/'+ str(obj.main_ads_id) +'/common/add?model_name=' + model_name
+    def get_model_name(self, obj):
+        return  self.context.get("model_name")
 
 
 class MainAdsCommonSpecSerializer(serializers.ModelSerializer):
     main_ads = serializers.ReadOnlyField(source="main_ads.main_ads_id")
-    next_url = serializers.SerializerMethodField(read_only=True)
+    model_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblCommonSpec
         fields = '__all__'
     
-    def get_next_url(self, obj):
+    def get_model_name(self, obj):
         model_name = self.context.get("model_name")
-        return base_url + '/main-ads/' + str(obj.main_ads.main_ads_id) + '/specification/add?model_name=' + model_name
+        return model_name
+
 
 class GenericSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = None
     
+
+class MainAdsWarrantySerializer(serializers.ModelSerializer):
+    main_ads = serializers.ReadOnlyField(source="main_ads.main_ads_id")
+
+    class Meta:
+        model = TblWarranty
+        fields = "__all__"
+
+
+class MainAdsDeliverySerializer(serializers.ModelSerializer):
+    main_ads = serializers.ReadOnlyField(source="main_ads.main_ads_id")
+
+    class Meta:
+        model = TblDelivery
+        fields = "__all__"
         

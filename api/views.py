@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from django.shortcuts import render, get_object_or_404
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
-TblHousings, TblCars, TblCustomer, TblUsers, TblUserRoles, TblCommonSpec
+TblHousings, TblCars, TblCustomer, TblUsers, TblUserRoles, TblCommonSpec, TblWarranty, TblDelivery
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -18,7 +18,8 @@ from .serializers import CategorySerializer, CategorySingleSerializer, BrandSeri
     SubCategoryListSerializer, SubCategoryDetailSerializer, ProductModelListSerializer, \
     ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer,\
     HousingListSerializer, HousingDetailSerializer, CarListSerializer, CarDetailSerializer, CustomerDetailSerializer,\
-    RegisterSerializer, MainAdsCreateSerializer, MainAdsCommonSpecSerializer, GenericSpecificationSerializer
+    RegisterSerializer, MainAdsCreateSerializer, MainAdsCommonSpecSerializer, GenericSpecificationSerializer, \
+    MainAdsWarrantySerializer, MainAdsDeliverySerializer
 from django.db import transaction
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
 
@@ -275,7 +276,7 @@ class MainAdsViewSet(ListAPIView):
 
     def get_queryset(self, *args, **kwargs):
         sub_cat = get_object_or_404(TblSubCategories, sub_category_id=self.kwargs.get('sub_category_id'))
-        return TblMainAds.objects.filter(sub_category=sub_cat)
+        return TblMainAds.objects.filter(Q(sub_category=sub_cat)|Q(model__sub_category=sub_cat))
 
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
@@ -432,7 +433,8 @@ class MainAdsCommonSpecEditViewSet(RetrieveUpdateAPIView):
     serializer_class = MainAdsCommonSpecSerializer
 
     def get_object(self, *args, **kwargs):
-        return TblCommonSpec.objects.get(id=self.kwargs.get('common_id'))
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        return TblCommonSpec.objects.get(main_ads=main_ads)
     
     def get(self, *args, **kwargs):
         serializer = self.get_serializer(self.get_object())
@@ -457,6 +459,8 @@ class MainAdsCommonSpecEditViewSet(RetrieveUpdateAPIView):
 
 
 class MainAdsSpecificationCreateViewSet(CreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get_serializer_class(self):
         model = apps.get_model('api', self.request.GET.get('model_name'))
         GenericSpecificationSerializer.Meta.model = model
@@ -484,6 +488,8 @@ class MainAdsSpecificationCreateViewSet(CreateAPIView):
     
 
 class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def get_serializer_class(self):
         model = apps.get_model('api', self.request.GET.get('model_name'))
         GenericSpecificationSerializer.Meta.model = model
@@ -516,3 +522,109 @@ class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
             'msg': 'Updated successfully.',
             'data': serializer.data
         }, status=HTTP_200_OK)
+
+
+class MainAdsWarrantyCreateViewSet(CreateAPIView):
+    serializer_class = MainAdsWarrantySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'msg': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        warranty = serializer.save()
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        warranty.main_ads = main_ads
+        warranty.save()
+        return Response({
+            'status': True,
+            'msg': 'Created Successfully',
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class MainAdsWarrantyDetailViewSet(RetrieveUpdateAPIView):
+    serializer_class = MainAdsWarrantySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        return TblWarranty.objects.get(main_ads=main_ads)
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully',
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class MainAdsDeliveryCreateViewSet(CreateAPIView):
+    serializer_class = MainAdsDeliverySerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        delivery = serializer.save()
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        delivery.main_ads = main_ads
+        delivery.save()
+        return Response({
+            'status': True,
+            'msg': 'Created successfully',
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class MainAdsDeliveryDetailViewSet(RetrieveUpdateAPIView):
+    serializer_class = MainAdsDeliverySerializer
+    permissions_classes = [permissions.IsAuthenticated]
+
+    def get_object(self, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        return TblDelivery.objects.get(main_ads=main_ads)
+    
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        self.perform_update(serializer)
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully',
+            'data': serializer.data
+        })
