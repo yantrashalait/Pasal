@@ -386,7 +386,7 @@ class MainAdsCreateSerializer(serializers.ModelSerializer):
         model = TblMainAds
         fields = ('main_ads_id', 'added_date', 'expired', 'view_count', 'customer', 
         'sub_category', 'model', 'ad_run_days', 'ad_title', 'description', 'expiry_date',
-        'featured', 'price', 'price_negotiable', 'next_url')
+        'featured', 'price', 'price_negotiable', 'model_name')
         extra_kwargs = {
             'ad_run_days': {'required': True}, 
             'ad_title': {'required': True},

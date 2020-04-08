@@ -628,3 +628,18 @@ class MainAdsDeliveryDetailViewSet(RetrieveUpdateAPIView):
             'msg': 'Updated successfully',
             'data': serializer.data
         })
+
+
+class UserAdsViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MainAdsListSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        return TblMainAds.objects.filter(customer__email=self.request.user)
+    
+    def get(self, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)

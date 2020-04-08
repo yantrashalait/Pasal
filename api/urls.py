@@ -35,6 +35,7 @@ urlpatterns = [
     path('search', views.SearchViewSet.as_view(), name="search"),
 
     path('user/profile', views.UserProfileViewSet.as_view(), name="user-profile"),
+    path('user/ads', views.UserAdsViewSet.as_view(), name="user-ads"),
 
     # add and update main ads properties
     path('main-ads/add', views.MainAdsCreateViewSet.as_view(), name="main-ads-create"),
