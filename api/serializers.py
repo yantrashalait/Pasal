@@ -199,13 +199,18 @@ class BrandSerializer(serializers.ModelSerializer):
 
 
 class MainAdsDetailSerializer(serializers.ModelSerializer):
-    specs = serializers.SerializerMethodField()
-    customer = CustomerDetailSerializer()
+    specs = serializers.SerializerMethodField(read_only=True)
+    customer = CustomerDetailSerializer(read_only=True)
     model = serializers.ReadOnlyField(source="model.model_name")
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
-    tblquestions_set = QuestionsSerializer(many=True)
-    pictures = serializers.SerializerMethodField()
-    model_name = serializers.SerializerMethodField()
+    tblquestions_set = QuestionsSerializer(many=True, read_only=True)
+    pictures = serializers.SerializerMethodField(read_only=True)
+    model_name = serializers.SerializerMethodField(read_only=True)
+    main_ads_id = serializers.ReadOnlyField()
+    added_date = serializers.ReadOnlyField()
+    expired = serializers.ReadOnlyField()
+    expiry_date = serializers.ReadOnlyField()
+    view_count = serializers.ReadOnlyField()
 
     class Meta:
         model = TblMainAds

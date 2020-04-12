@@ -24,12 +24,14 @@ from django.db import transaction
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
 
 from django.contrib.auth import get_user_model
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.db.models import Q
 from django.apps import apps
 
 User = get_user_model()
+
+from .permissions import IsOwnerOrReadOnly
 
 @csrf_exempt
 @api_view(["POST"])
@@ -286,8 +288,8 @@ class MainAdsViewSet(ListAPIView):
         }, status=HTTP_200_OK)
 
 
-class MainAdsDetailViewSet(RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+class MainAdsDetailViewSet(RetrieveUpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = MainAdsDetailSerializer
 
     def get_object(self, *args, **kwargs):
@@ -298,6 +300,36 @@ class MainAdsDetailViewSet(RetrieveAPIView):
         serializer = self.get_serializer(self.get_object())
         return Response({
             'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+    def put(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        run_days = serializer.validated_data['ad_run_days']
+        today = datetime.now()
+        run_until = timedelta(days=int(run_days))
+
+        expiry_date_time = today + run_until
+        expiry_date = expiry_date_time.date()
+        serializer.expiry_date = expiry_date
+
+        if today.date() > expiry_date:
+            serializer.expired = True
+        else:
+            serializer.expired = False
+        
+        print(serializer.validated_data)
+
+        self.perform_update(serializer)
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully.',
             'data': serializer.data
         }, status=HTTP_200_OK)
 
