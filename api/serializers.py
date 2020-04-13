@@ -386,6 +386,8 @@ class MainAdsCreateSerializer(serializers.ModelSerializer):
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
     model = serializers.ReadOnlyField(source="model.model_name")
     model_name = serializers.SerializerMethodField(read_only=True)
+    expired = serializers.ReadOnlyField()
+    expiry_date = serializers.ReadOnlyField()
     
     class Meta:
         model = TblMainAds
@@ -396,7 +398,6 @@ class MainAdsCreateSerializer(serializers.ModelSerializer):
             'ad_run_days': {'required': True}, 
             'ad_title': {'required': True},
             'description': {'required': True},
-            'expiry_date': {'required': True},
             'featured': {'required': True},
             'price': {'required': True},
             'price_negotiable': {'required': True},

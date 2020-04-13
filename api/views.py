@@ -294,6 +294,7 @@ class MainAdsDetailViewSet(RetrieveUpdateAPIView):
 
     def get_object(self, *args, **kwargs):
         main_ads = get_object_or_404(TblMainAds, main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
         return main_ads
 
     def get(self, request, *args, **kwargs):
@@ -311,22 +312,38 @@ class MainAdsDetailViewSet(RetrieveUpdateAPIView):
                 'data': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
         
-        run_days = serializer.validated_data['ad_run_days']
-        today = datetime.now()
-        run_until = timedelta(days=int(run_days))
+        main_ads = self.get_object()
 
-        expiry_date_time = today + run_until
-        expiry_date = expiry_date_time.date()
-        serializer.expiry_date = expiry_date
+        if 'ad_run_days' in serializer.validated_data:
+            run_days = serializer.validated_data['ad_run_days']
+            today = datetime.now()
+            run_until = timedelta(days=int(run_days))
 
-        if today.date() > expiry_date:
-            serializer.expired = True
-        else:
-            serializer.expired = False
+            expiry_date_time = today + run_until
+            expiry_date = expiry_date_time.date()
+            main_ads.ad_run_days = run_days
+            main_ads.expiry_date = expiry_date
+
+            if today.date() > expiry_date:
+                main_ads.expired = True
+            else:
+                main_ads.expired = False
         
-        print(serializer.validated_data)
+        if 'ad_title' in serializer.validated_data:
+            main_ads.ad_title = serializer.validated_data['ad_title']
+        if 'description' in serializer.validated_data:
+            main_ads.description = serializer.validated_data['description']
+        if 'featured' in serializer.validated_data:
+            main_ads.featured = serializer.validated_data['featured']
+        if 'price' in serializer.validated_data:
+            main_ads.price = serializer.validated_data['price']
+        if 'price_negotiable' in serializer.validated_data:
+            main_ads.price_negotiable = serializer.validated_data['price_negotiable']
+        
+        main_ads.save()
 
-        self.perform_update(serializer)
+        serializer = self.get_serializer(main_ads)
+
         return Response({
             'status': True,
             'msg': 'Updated successfully.',
@@ -401,7 +418,6 @@ class MainAdsCreateViewSet(CreateAPIView):
             sub_category = TblSubCategories.objects.get(sub_category_id=self.request.GET.get('sub_category_id', 1))
         else:
             sub_category = None
-            
         customer = TblCustomer.objects.get(email=self.request.user)
 
         main_ads_kwargs = serializer.validated_data
@@ -411,9 +427,21 @@ class MainAdsCreateViewSet(CreateAPIView):
         if sub_category:
             main_ads.sub_category = sub_category
         
+        run_days = serializer.validated_data['ad_run_days']
+        today = datetime.now()
+        run_until = timedelta(days=int(run_days))
+
+        expiry_date_time = today + run_until
+        expiry_date = expiry_date_time.date()
+        main_ads.expiry_date = expiry_date
+
+        if today.date() > expiry_date:
+            main_ads.expired = True
+        else:
+            main_ads.expired = False
+        
         main_ads.customer = customer
         main_ads.added_date = datetime.now()
-        main_ads.expired = False
         main_ads.view_count = 0
         main_ads.save()
 
@@ -430,10 +458,13 @@ class MainAdsCreateViewSet(CreateAPIView):
 
 
 class MainAdsCommonSpecAddViewSet(CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = MainAdsCommonSpecSerializer
 
     def post(self, request, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -441,7 +472,7 @@ class MainAdsCommonSpecAddViewSet(CreateAPIView):
                 'status': False,
                 'data': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
-        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        
         common_spec_kwargs = serializer.validated_data
         common_spec = TblCommonSpec(**common_spec_kwargs)
         common_spec.main_ads = main_ads
@@ -461,11 +492,12 @@ class MainAdsCommonSpecAddViewSet(CreateAPIView):
 
 
 class MainAdsCommonSpecEditViewSet(RetrieveUpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = MainAdsCommonSpecSerializer
 
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
         return TblCommonSpec.objects.get(main_ads=main_ads)
     
     def get(self, *args, **kwargs):
@@ -488,10 +520,12 @@ class MainAdsCommonSpecEditViewSet(RetrieveUpdateAPIView):
             'msg': 'Updated Successfully',
             'data': serializer.data
         })
-
+        
+    def get_serializer_context(self):
+        return {'model_name': self.request.GET.get("model_name")}
 
 class MainAdsSpecificationCreateViewSet(CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
         model = apps.get_model('api', self.request.GET.get('model_name'))
@@ -500,6 +534,9 @@ class MainAdsSpecificationCreateViewSet(CreateAPIView):
         return GenericSpecificationSerializer
 
     def post(self, request, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return Response({
@@ -508,7 +545,6 @@ class MainAdsSpecificationCreateViewSet(CreateAPIView):
             }, status=HTTP_400_BAD_REQUEST)
         
         spec = serializer.save()
-        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         spec.main_ads = main_ads
         spec.save()
 
@@ -520,7 +556,7 @@ class MainAdsSpecificationCreateViewSet(CreateAPIView):
     
 
 class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
         model = apps.get_model('api', self.request.GET.get('model_name'))
@@ -531,6 +567,7 @@ class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
     def get_object(self, *args, **kwargs):
         model = apps.get_model("api", self.request.GET.get('model_name'))
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get("main_ads_id"))
+        self.check_object_permissions(self.request, main_ads)
         return model.objects.get(main_ads=main_ads)
 
     def get(self, request, *args, **kwargs):
@@ -558,9 +595,12 @@ class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
 
 class MainAdsWarrantyCreateViewSet(CreateAPIView):
     serializer_class = MainAdsWarrantySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def post(self, request, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return Response({
@@ -568,7 +608,7 @@ class MainAdsWarrantyCreateViewSet(CreateAPIView):
                 'msg': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
         warranty = serializer.save()
-        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        
         warranty.main_ads = main_ads
         warranty.save()
         return Response({
@@ -580,10 +620,11 @@ class MainAdsWarrantyCreateViewSet(CreateAPIView):
 
 class MainAdsWarrantyDetailViewSet(RetrieveUpdateAPIView):
     serializer_class = MainAdsWarrantySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
         return TblWarranty.objects.get(main_ads=main_ads)
 
     def get(self, request, *args, **kwargs):
@@ -610,9 +651,12 @@ class MainAdsWarrantyDetailViewSet(RetrieveUpdateAPIView):
 
 class MainAdsDeliveryCreateViewSet(CreateAPIView):
     serializer_class = MainAdsDeliverySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def post(self, request, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
             return Response({
@@ -621,7 +665,7 @@ class MainAdsDeliveryCreateViewSet(CreateAPIView):
             }, status=HTTP_400_BAD_REQUEST)
         
         delivery = serializer.save()
-        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        
         delivery.main_ads = main_ads
         delivery.save()
         return Response({
@@ -633,10 +677,11 @@ class MainAdsDeliveryCreateViewSet(CreateAPIView):
 
 class MainAdsDeliveryDetailViewSet(RetrieveUpdateAPIView):
     serializer_class = MainAdsDeliverySerializer
-    permissions_classes = [permissions.IsAuthenticated]
+    permissions_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
         return TblDelivery.objects.get(main_ads=main_ads)
     
     def get(self, request, *args, **kwargs):
