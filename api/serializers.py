@@ -93,6 +93,10 @@ class CustomerDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = TblCustomer
         fields = '__all__'
+        extra_kwargs = {
+            'name': {'required': True},
+            'phone': {'required': True},
+        }
 
 
 class RepliesSerializer(serializers.ModelSerializer):

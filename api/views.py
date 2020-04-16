@@ -64,6 +64,8 @@ class RegisterViewSet(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            user.enabled = True
+            user.save()
 
             # create role for user
             TblUserRoles.objects.create(email=user, role="ROLE_USER")
