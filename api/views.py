@@ -459,15 +459,15 @@ class MainAdsCreateViewSet(CreateAPIView):
         return {'model_name': self.request.GET.get("model_name")}
 
 
-class MainAdsCommonSpecAddViewSet(CreateAPIView):
+class MainAdsCommonSpecAddViewSet(APIView):
+
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
-    serializer_class = MainAdsCommonSpecSerializer
 
     def post(self, request, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         self.check_object_permissions(self.request, main_ads)
 
-        serializer = self.get_serializer(data=request.data)
+        serializer = MainAdsCommonSpecSerializer(data=request.data)
 
         if not serializer.is_valid():
             return Response({
@@ -488,12 +488,30 @@ class MainAdsCommonSpecAddViewSet(CreateAPIView):
             'data': serializer.data
         }, status=HTTP_200_OK)
     
+    def put(self, request, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get("main_ads_id"))
+        self.check_object_permissions(self.request, main_ads)
+        common_spec = TblCommonSpec.objects.get(main_ads=main_ads)
+
+        serializer = MainAdsCommonSpecSerializer(common_spec, data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response({
+            'status': True,
+            'msg': 'Updated Successfully',
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
     def get_serializer_context(self):
         return {'model_name': self.request.GET.get("model_name")}
 
 
 
-class MainAdsCommonSpecEditViewSet(RetrieveUpdateAPIView):
+class MainAdsCommonSpecDetailViewSet(RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
     serializer_class = MainAdsCommonSpecSerializer
 
@@ -508,25 +526,12 @@ class MainAdsCommonSpecEditViewSet(RetrieveUpdateAPIView):
             'status': True,
             'data': serializer.data
         }, status=HTTP_200_OK)
-    
-    def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'status': False,
-                'data': serializer.errors
-            }, status=HTTP_400_BAD_REQUEST)
-        self.perform_update(serializer)
-        return Response({
-            'status': True,
-            'msg': 'Updated Successfully',
-            'data': serializer.data
-        })
         
     def get_serializer_context(self):
         return {'model_name': self.request.GET.get("model_name")}
 
-class MainAdsSpecificationCreateViewSet(CreateAPIView):
+
+class MainAdsSpecificationCreateViewSet(APIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
@@ -539,7 +544,10 @@ class MainAdsSpecificationCreateViewSet(CreateAPIView):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         self.check_object_permissions(self.request, main_ads)
 
-        serializer = self.get_serializer(data=request.data)
+        _serializer = self.get_serializer_class()
+
+        serializer = _serializer(data=request.data)
+
         if not serializer.is_valid():
             return Response({
                 'status': False,
@@ -556,8 +564,31 @@ class MainAdsSpecificationCreateViewSet(CreateAPIView):
             'data': serializer.data
         }, status=HTTP_200_OK)
     
+    def put(self, request, *args, **kwargs):
+        _serializer = self.get_serializer_class()
 
-class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
+        serializer = _serializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        serializer.save()
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully.',
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+    def get_object(self, *args, **kwargs):
+        model = apps.get_model("api", self.request.GET.get('model_name'))
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get("main_ads_id"))
+        self.check_object_permissions(self.request, main_ads)
+        return model.objects.get(main_ads=main_ads)
+    
+
+class MainAdsSpecificationDetailViewSet(RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_serializer_class(self):
@@ -578,32 +609,16 @@ class MainAdsSpecificationEditViewSet(RetrieveUpdateAPIView):
             'status': True,
             'data': serializer.data
         }, status=HTTP_200_OK)
-    
-    def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'status': False,
-                'data': serializer.errors
-            }, status=HTTP_400_BAD_REQUEST)
-        
-        self.perform_update(serializer)
-        return Response({
-            'status': True,
-            'msg': 'Updated successfully.',
-            'data': serializer.data
-        }, status=HTTP_200_OK)
 
 
-class MainAdsWarrantyCreateViewSet(CreateAPIView):
-    serializer_class = MainAdsWarrantySerializer
+class MainAdsWarrantyCreateViewSet(APIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def post(self, request, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         self.check_object_permissions(self.request, main_ads)
 
-        serializer = self.get_serializer(data=request.data)
+        serializer = MainAdsWarrantySerializer(data=request.data)
         if not serializer.is_valid():
             return Response({
                 'status': False,
@@ -619,8 +634,27 @@ class MainAdsWarrantyCreateViewSet(CreateAPIView):
             'data': serializer.data
         }, status=HTTP_200_OK)
 
+    def get_object(self, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+        return TblWarranty.objects.get(main_ads=main_ads)
 
-class MainAdsWarrantyDetailViewSet(RetrieveUpdateAPIView):
+    def put(self, request, *args, **kwargs):
+        serializer = MainAdsWarrantySerializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        serializer.save()
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully',
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class MainAdsWarrantyDetailViewSet(RetrieveAPIView):
     serializer_class = MainAdsWarrantySerializer
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -636,30 +670,17 @@ class MainAdsWarrantyDetailViewSet(RetrieveUpdateAPIView):
             'data': serializer.data
         }, status=HTTP_200_OK)
     
-    def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'status': False,
-                'data': serializer.errors
-            }, status=HTTP_400_BAD_REQUEST)
-        self.perform_update(serializer)
-        return Response({
-            'status': True,
-            'msg': 'Updated successfully',
-            'data': serializer.data
-        }, status=HTTP_200_OK)
+    
 
 
-class MainAdsDeliveryCreateViewSet(CreateAPIView):
-    serializer_class = MainAdsDeliverySerializer
+class MainAdsDeliveryCreateViewSet(APIView):
     permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
     def post(self, request, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         self.check_object_permissions(self.request, main_ads)
 
-        serializer = self.get_serializer(data=request.data)
+        serializer = MainAdsDeliverySerializer(data=request.data)
         if not serializer.is_valid():
             return Response({
                 'status': False,
@@ -675,9 +696,29 @@ class MainAdsDeliveryCreateViewSet(CreateAPIView):
             'msg': 'Created successfully',
             'data': serializer.data
         }, status=HTTP_200_OK)
+    
+    def get_object(self, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+        return TblDelivery.objects.get(main_ads=main_ads)
+    
+    def put(self, request, *args, **kwargs):
+        serializer = MainAdsDeliverySerializer(self.get_object(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        serializer.save()
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully',
+            'data': serializer.data
+        })
 
 
-class MainAdsDeliveryDetailViewSet(RetrieveUpdateAPIView):
+class MainAdsDeliveryDetailViewSet(RetrieveAPIView):
     serializer_class = MainAdsDeliverySerializer
     permissions_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -692,21 +733,6 @@ class MainAdsDeliveryDetailViewSet(RetrieveUpdateAPIView):
             'status': True,
             'data': serializer.data
         }, status=HTTP_200_OK)
-    
-    def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data)
-        if not serializer.is_valid():
-            return Response({
-                'status': False,
-                'data': serializer.errors
-            }, status=HTTP_400_BAD_REQUEST)
-        
-        self.perform_update(serializer)
-        return Response({
-            'status': True,
-            'msg': 'Updated successfully',
-            'data': serializer.data
-        })
 
 
 class UserAdsViewSet(ListAPIView):

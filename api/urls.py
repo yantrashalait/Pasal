@@ -40,9 +40,9 @@ urlpatterns = [
     # add and update main ads properties
     path('main-ads/add', views.MainAdsCreateViewSet.as_view(), name="main-ads-create"),
     path('main-ads/<int:main_ads_id>/common/add', views.MainAdsCommonSpecAddViewSet.as_view(), name="main-ads-common-spec-add"),
-    path('main-ads/<int:main_ads_id>/common/detail', views.MainAdsCommonSpecEditViewSet.as_view(), name="main-ads-common-spec-detail"),
+    path('main-ads/<int:main_ads_id>/common/detail', views.MainAdsCommonSpecDetailViewSet.as_view(), name="main-ads-common-spec-detail"),
     path('main-ads/<int:main_ads_id>/specification/add', views.MainAdsSpecificationCreateViewSet.as_view(), name="main-ads-spec-create"),
-    path('main-ads/<int:main_ads_id>/specification/detail', views.MainAdsSpecificationEditViewSet.as_view(), name="main-ads-spec-edit"),
+    path('main-ads/<int:main_ads_id>/specification/detail', views.MainAdsSpecificationDetailViewSet.as_view(), name="main-ads-spec-edit"),
     path('main-ads/<int:main_ads_id>/warranty/add', views.MainAdsWarrantyCreateViewSet.as_view(), name="main-ads-warranty-create"),
     path('main-ads/<int:main_ads_id>/warranty/detail', views.MainAdsWarrantyDetailViewSet.as_view(), name="main-ads-warranty-edit"),
     path('main-ads/<int:main_ads_id>/delivery/add', views.MainAdsDeliveryCreateViewSet.as_view(), name="main-ads-delivery-create"),
