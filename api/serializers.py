@@ -58,13 +58,41 @@ class CategorySerializer(serializers.ModelSerializer):
 class SubCategoryListSerializer(serializers.ModelSerializer):
     detail_url = serializers.SerializerMethodField()
     category = serializers.ReadOnlyField(source="category.category_name")
+    model_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblSubCategories
-        fields = ('sub_category_id', 'sub_category_name', 'category', 'detail_url')
+        fields = ('sub_category_id', 'sub_category_name', 'category', 'detail_url', 'model_name')
 
     def get_detail_url(self, obj):
         return base_url + '/sub-category/' + str(obj.sub_category_id)
+    
+    def get_model_name(self, obj):
+        fields=[]
+        related_models = []
+        main_ads = TblMainAds.objects.filter(sub_category=obj)
+        if main_ads:
+            obj1 = main_ads[0]
+            for model in obj1._meta.get_fields():
+                if model.get_internal_type() == "ForeignKey":
+                    try:
+                        if model.field.get_internal_type() == "ForeignKey":
+                            related_models.append(model)
+                    except:
+                        pass
+            for field in related_models:
+                if field.related_model.objects.filter(main_ads=obj1).exists():
+                    if field.related_model._meta.model_name == "tblquestions":
+                        continue
+                    if field.related_model._meta.model_name == "tblpictures":
+                        continue
+                    if field.related_model._meta.model_name == "tblwishlist":
+                        continue
+
+                    model_name = field.related_model._meta.model_name
+
+                    if "spec"in model_name and model_name != "tblcommonspec":
+                        return model_name
 
 
 class CategorySingleSerializer(serializers.ModelSerializer):
@@ -365,17 +393,16 @@ class CarListSerializer(serializers.ModelSerializer):
     def get_pictures(self, obj):
         return TblPictures.objects.filter(car=obj).values('picture_name')
 
+
 class CarDetailSerializer(serializers.ModelSerializer):
     brand = serializers.ReadOnlyField(source="brand.brand_name")
+    car_id = serializers.ReadOnlyField()
     pictures = serializers.SerializerMethodField()
 
     class Meta:
         model = TblCars
         fields = ('car_id', 'car_name', 'color', 'description', 'engine', 'features',
         'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures')
-
-    def get_detail_url(self, obj):
-        return base_url + '/car/detail/' + str(obj.car_id)
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(car=obj).values('picture_name')
