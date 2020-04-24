@@ -225,6 +225,7 @@ class ProductModelDetailSerializer(serializers.ModelSerializer):
 
 
 class BrandSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = TblBrands
         fields = '__all__'
@@ -377,6 +378,46 @@ class HousingDetailSerializer(serializers.ModelSerializer):
         return TblPictures.objects.filter(housing=obj).values('picture_name')
 
 
+class PictureSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TblPictures
+        fields = "__all__"
+
+class CarAddSerializer(serializers.ModelSerializer):
+    car_id = serializers.ReadOnlyField()
+    pictures = PictureSerializer(many=True)
+
+    class Meta:
+        model = TblCars
+        fields = ("car_id", 'car_name', 'color', 'description', 'engine', 'features',
+        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures')
+    
+    def create(self, validated_data):
+        pictures = validated_data.pop('pictures')
+        car = TblCars.objects.create(**validated_data)
+        for picture in pictures:
+            TblPictures.objects.create(car=car, **picture)
+        return car
+
+
+class HousingAddSerializer(serializers.ModelSerializer):
+    housing_id = serializers.ReadOnlyField()
+    pictures = PictureSerializer(many=True)
+
+    class Meta:
+        model = TblHousings
+        fields = "__all__"
+    
+    def create(self, validated_data):
+        pictures = validated_data.pop('pictures')
+        housing = TblHousings.objects.create(**validated_data)
+        housing.added_date = datetime.now().date
+        for picture in pictures:
+            TblPictures.objects.create(housing=housing, **picture)
+        return housing
+
+
 class CarListSerializer(serializers.ModelSerializer):
     brand = serializers.ReadOnlyField(source="brand.brand_name")
     detail_url = serializers.SerializerMethodField()
@@ -397,7 +438,7 @@ class CarListSerializer(serializers.ModelSerializer):
 class CarDetailSerializer(serializers.ModelSerializer):
     brand = serializers.ReadOnlyField(source="brand.brand_name")
     car_id = serializers.ReadOnlyField()
-    pictures = serializers.SerializerMethodField()
+    pictures = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblCars

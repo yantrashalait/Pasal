@@ -19,7 +19,7 @@ from .serializers import CategorySerializer, CategorySingleSerializer, BrandSeri
     ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer,\
     HousingListSerializer, HousingDetailSerializer, CarListSerializer, CarDetailSerializer, CustomerDetailSerializer,\
     RegisterSerializer, MainAdsCreateSerializer, MainAdsCommonSpecSerializer, GenericSpecificationSerializer, \
-    MainAdsWarrantySerializer, MainAdsDeliverySerializer
+    MainAdsWarrantySerializer, MainAdsDeliverySerializer, CarAddSerializer, HousingAddSerializer
 from django.db import transaction
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_200_OK
 
@@ -746,5 +746,57 @@ class UserAdsViewSet(ListAPIView):
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response({
             'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+
+class BrandListViewSet(ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = BrandSerializer
+
+    def get_queryset(self, *args, **kwargs):
+        return TblBrands.objects.all()
+    
+    def get(self, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response({
+            'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+
+class CarAddViewSet(CreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = CarAddSerializer
+
+    def post(self, *args, **kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        return Response({
+            'status': True,
+            'data': serializer.data,
+            'msg': 'Created successfully'
+        }, status=HTTP_200_OK)
+    
+
+class HousingAddViewSet(CreateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = HousingAddSerializer
+
+    def post(self, *args, **kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        return Response({
+            'status': True,
+            'msg':' Created successfully',
             'data': serializer.data
         }, status=HTTP_200_OK)

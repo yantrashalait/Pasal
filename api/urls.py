@@ -48,6 +48,11 @@ urlpatterns = [
     path('main-ads/<int:main_ads_id>/delivery/add', views.MainAdsDeliveryCreateViewSet.as_view(), name="main-ads-delivery-create"),
     path('main-ads/<int:main_ads_id>/delivery/detail', views.MainAdsDeliveryDetailViewSet.as_view(), name="main-ads-delivery-edit"),
 
+    #add and update cars or housing
+    path('brand/list', views.BrandListViewSet.as_view(), name="brand-list"),
+    path('car/add', views.CarAddViewSet.as_view(), name="car-add"),
+    path('housing/add', views.HousingAddViewSet.as_view(), name="housing-add"),
+
 ]
 
 urlpatterns += router.urls
