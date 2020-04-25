@@ -488,12 +488,13 @@ class MainAdsCommonSpecAddViewSet(APIView):
             'data': serializer.data
         }, status=HTTP_200_OK)
     
-    def put(self, request, *args, **kwargs):
-        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get("main_ads_id"))
+    def get_object(self, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         self.check_object_permissions(self.request, main_ads)
-        common_spec = TblCommonSpec.objects.get(main_ads=main_ads)
-
-        serializer = MainAdsCommonSpecSerializer(common_spec, data=request.data)
+        return get_object_or_404(TblCommonSpec, main_ads=main_ads)
+    
+    def put(self, request, *args, **kwargs):
+        serializer = MainAdsCommonSpecSerializer(self.get_object(), data=request.data)
         if not serializer.is_valid():
             return Response({
                 'status': False,
@@ -517,8 +518,7 @@ class MainAdsCommonSpecDetailViewSet(RetrieveAPIView):
 
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
-        self.check_object_permissions(self.request, main_ads)
-        return TblCommonSpec.objects.get(main_ads=main_ads)
+        return get_object_or_404(TblCommonSpec, main_ads=main_ads)
     
     def get(self, *args, **kwargs):
         serializer = self.get_serializer(self.get_object())
@@ -585,7 +585,7 @@ class MainAdsSpecificationCreateViewSet(APIView):
         model = apps.get_model("api", self.request.GET.get('model_name'))
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get("main_ads_id"))
         self.check_object_permissions(self.request, main_ads)
-        return model.objects.get(main_ads=main_ads)
+        return get_object_or_404(model, main_ads=main_ads)
     
 
 class MainAdsSpecificationDetailViewSet(RetrieveAPIView):
@@ -600,8 +600,7 @@ class MainAdsSpecificationDetailViewSet(RetrieveAPIView):
     def get_object(self, *args, **kwargs):
         model = apps.get_model("api", self.request.GET.get('model_name'))
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get("main_ads_id"))
-        self.check_object_permissions(self.request, main_ads)
-        return model.objects.get(main_ads=main_ads)
+        return get_object_or_404(model, main_ads=main_ads)
 
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object())
@@ -637,7 +636,7 @@ class MainAdsWarrantyCreateViewSet(APIView):
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         self.check_object_permissions(self.request, main_ads)
-        return TblWarranty.objects.get(main_ads=main_ads)
+        return get_object_or_404(TblWarranty, main_ads=main_ads)
 
     def put(self, request, *args, **kwargs):
         serializer = MainAdsWarrantySerializer(self.get_object(), data=request.data)
@@ -660,8 +659,7 @@ class MainAdsWarrantyDetailViewSet(RetrieveAPIView):
 
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
-        self.check_object_permissions(self.request, main_ads)
-        return TblWarranty.objects.get(main_ads=main_ads)
+        return get_object_or_404(TblWarranty, main_ads=main_ads)
 
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object())
@@ -669,8 +667,6 @@ class MainAdsWarrantyDetailViewSet(RetrieveAPIView):
             'status': True,
             'data': serializer.data
         }, status=HTTP_200_OK)
-    
-    
 
 
 class MainAdsDeliveryCreateViewSet(APIView):
@@ -700,7 +696,7 @@ class MainAdsDeliveryCreateViewSet(APIView):
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
         self.check_object_permissions(self.request, main_ads)
-        return TblDelivery.objects.get(main_ads=main_ads)
+        return get_object_or_404(TblDelivery, main_ads=main_ads)
     
     def put(self, request, *args, **kwargs):
         serializer = MainAdsDeliverySerializer(self.get_object(), data=request.data)
@@ -724,8 +720,7 @@ class MainAdsDeliveryDetailViewSet(RetrieveAPIView):
 
     def get_object(self, *args, **kwargs):
         main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
-        self.check_object_permissions(self.request, main_ads)
-        return TblDelivery.objects.get(main_ads=main_ads)
+        return get_object_or_404(TblDelivery, main_ads=main_ads)
     
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_object())
