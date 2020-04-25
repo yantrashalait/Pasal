@@ -509,7 +509,7 @@ class MainAdsCommonSpecAddViewSet(APIView):
         common_spec.main_ads = main_ads
         common_spec.save()
 
-        serializer = self.get_serializer(common_spec)
+        serializer = MainAdsCommonSpecSerializer(common_spec)
 
         return Response({
             'status': True,
