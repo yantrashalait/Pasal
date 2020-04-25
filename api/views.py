@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateAPIView,\
-    RetrieveUpdateDestroyAPIView, RetrieveAPIView, CreateAPIView
+    RetrieveUpdateDestroyAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView
 from .serializers import CategorySerializer, CategorySingleSerializer, BrandSerializer, \
     SubCategoryListSerializer, SubCategoryDetailSerializer, ProductModelListSerializer, \
     ProductModelDetailSerializer, MainAdsListSerializer, MainAdsDetailSerializer, AllCategorySerializer,\
@@ -119,17 +119,31 @@ class HousingListViewSet(ListAPIView):
         }, status=HTTP_200_OK)
 
 
-class HousingDetailViewSet(RetrieveAPIView):
+class HousingDetailViewSet(RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = HousingDetailSerializer
 
     def get_object(self, *args, **kwargs):
         return get_object_or_404(TblHousings, housing_id=self.kwargs.get('housing_id'))
 
     def get(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object())
+        serializer = HousingDetailSerializer(self.get_object())
         return Response({
             'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+    
+    def put(self, *args, **kwargs):
+        serializer = HousingAddSerializer(self.get_object(), data=self.request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'msg': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        serializer = HousingDetailSerializer(self.get_object())
+        return Response({
+            'status': True,
+            'msg': 'Successfully updated',
             'data': serializer.data
         }, status=HTTP_200_OK)
 
@@ -149,7 +163,7 @@ class CarListViewSet(ListAPIView):
         }, status=HTTP_200_OK)
 
 
-class CarDetailViewSet(RetrieveAPIView):
+class CarDetailViewSet(RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = CarDetailSerializer
 
@@ -160,6 +174,21 @@ class CarDetailViewSet(RetrieveAPIView):
         serializer = self.get_serializer(self.get_object())
         return Response({
             'status': True,
+            'data': serializer.data
+        }, status=HTTP_200_OK)
+
+    def put(self, *args, **kwargs):
+        serializer = CarAddSerializer(self.get_object(), data=self.request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'msg': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        self.perform_update(serializer)
+        serializer = CarDetailSerializer(self.get_object())
+        return Response({
+            'status': True,
+            'msg': 'Successfully updated',
             'data': serializer.data
         }, status=HTTP_200_OK)
 
@@ -776,7 +805,7 @@ class CarAddViewSet(CreateAPIView):
             'data': serializer.data,
             'msg': 'Created successfully'
         }, status=HTTP_200_OK)
-    
+
 
 class HousingAddViewSet(CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]

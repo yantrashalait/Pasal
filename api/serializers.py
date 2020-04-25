@@ -365,7 +365,8 @@ class HousingListSerializer(serializers.ModelSerializer):
 
 class HousingDetailSerializer(serializers.ModelSerializer):
     brand = serializers.ReadOnlyField(source="brand.brand_name")
-    pictures = serializers.SerializerMethodField()
+    pictures = serializers.SerializerMethodField(read_only=True)
+    housing_id = serializers.ReadOnlyField()
 
     class Meta:
         model = TblHousings
@@ -384,6 +385,7 @@ class PictureSerializer(serializers.ModelSerializer):
         model = TblPictures
         fields = "__all__"
 
+
 class CarAddSerializer(serializers.ModelSerializer):
     car_id = serializers.ReadOnlyField()
     pictures = PictureSerializer(many=True)
@@ -399,6 +401,12 @@ class CarAddSerializer(serializers.ModelSerializer):
         for picture in pictures:
             TblPictures.objects.create(car=car, **picture)
         return car
+    
+    def update(self, instance, validated_data):
+        pictures = validated_data.pop('pictures')
+        for picture in pictures:
+            TblPictures.objects.update_or_create(car=instance, **picture)
+        return super(CarAddSerializer, self).update(instance, validated_data)
 
 
 class HousingAddSerializer(serializers.ModelSerializer):
@@ -416,6 +424,12 @@ class HousingAddSerializer(serializers.ModelSerializer):
         for picture in pictures:
             TblPictures.objects.create(housing=housing, **picture)
         return housing
+    
+    def update(self, instance, validated_data):
+        pictures = validated_data.pop('pictures')
+        for picture in pictures:
+            TblPictures.objects.update_or_create(housing=instance, **picture)
+        return super(HousingAddSerializer, self).update(instance, validated_data)
 
 
 class CarListSerializer(serializers.ModelSerializer):
