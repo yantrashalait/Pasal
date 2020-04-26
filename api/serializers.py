@@ -268,7 +268,7 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
     model_name = serializers.SerializerMethodField(read_only=True)
     main_ads_id = serializers.ReadOnlyField()
     added_date = serializers.ReadOnlyField()
-    expired = serializers.ReadOnlyField()
+    expired = serializers.BooleanField(read_only=True)
     expiry_date = serializers.ReadOnlyField()
     view_count = serializers.ReadOnlyField()
 
