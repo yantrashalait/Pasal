@@ -41,7 +41,34 @@ class AllCategorySerializer(serializers.ModelSerializer):
         fields = ('category_id', 'category_name', 'sub_categories')
 
     def get_sub_categories(self, obj):
-        return TblSubCategories.objects.filter(category=obj).values()
+        sub_categories = TblSubCategories.objects.filter(category=obj).values()
+        for item in sub_categories:
+            fields=[]
+            related_models = []
+            main_ads = TblMainAds.objects.filter(sub_category__sub_category_id=item['sub_category_id'])
+            if main_ads:
+                obj1 = main_ads[0]
+                for model in obj1._meta.get_fields():
+                    if model.get_internal_type() == "ForeignKey":
+                        try:
+                            if model.field.get_internal_type() == "ForeignKey":
+                                related_models.append(model)
+                        except:
+                            pass
+                for field in related_models:
+                    if field.related_model._meta.model_name.find(item['sub_category_name'].lower()) != -1 or field.related_model.objects.filter(main_ads=obj1).exists():
+                        if field.related_model._meta.model_name == "tblquestions":
+                            continue
+                        if field.related_model._meta.model_name == "tblpictures":
+                            continue
+                        if field.related_model._meta.model_name == "tblwishlist":
+                            continue
+
+                        model_name = field.related_model._meta.model_name
+
+                        if "spec"in model_name and model_name != "tblcommonspec":
+                            item['model_name'] = model_name
+        return sub_categories
 
 
 class CategorySerializer(serializers.ModelSerializer):
