@@ -493,13 +493,12 @@ class CarDetailSerializer(serializers.ModelSerializer):
 class MainAdsCreateSerializer(serializers.ModelSerializer):
     main_ads_id = serializers.ReadOnlyField()
     added_date = serializers.ReadOnlyField()
-    expired = serializers.ReadOnlyField()
+    expired = serializers.BooleanField(read_only=True)
     view_count = serializers.ReadOnlyField()
     customer = serializers.ReadOnlyField(source="customer.email.email")
     sub_category = serializers.ReadOnlyField(source="sub_category.sub_category_name")
     model = serializers.ReadOnlyField(source="model.model_name")
     model_name = serializers.SerializerMethodField(read_only=True)
-    expired = serializers.ReadOnlyField()
     expiry_date = serializers.ReadOnlyField()
     
     class Meta:
