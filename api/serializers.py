@@ -376,7 +376,7 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
             
                 else:
                     sub_category = obj.sub_category
-                    main_ads = TblMainAds.objects.filter(sub_category=obj)
+                    main_ads = TblMainAds.objects.filter(sub_category=sub_category)
                     if main_ads:
                         obj1 = main_ads[0]
                         for model in obj1._meta.get_fields():
