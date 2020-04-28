@@ -803,9 +803,9 @@ class CarAddViewSet(CreateAPIView):
                 'status': False,
                 'data': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
+        serializer.save()
         return Response({
             'status': True,
-            'data': serializer.data,
             'msg': 'Created successfully'
         }, status=HTTP_200_OK)
 
@@ -821,9 +821,8 @@ class HousingAddViewSet(CreateAPIView):
                 'status': False,
                 'data': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
-        
+        self.perform_create(serializer)
         return Response({
             'status': True,
             'msg':' Created successfully',
-            'data': serializer.data
         }, status=HTTP_200_OK)
