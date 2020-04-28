@@ -44,6 +44,8 @@ def login(request):
             {'error': 'Please provide both email and password.'},
             status=HTTP_400_BAD_REQUEST)
     user = authenticate(email=email, password=password)
+    customer = TblCustomer.objects.get(email=user)
+
 
     if not user:
         return Response(
@@ -53,7 +55,8 @@ def login(request):
     token, created = Token.objects.get_or_create(user=user)
     return Response(
         {
-            'token': token.key
+            'token': token.key,
+            'user_id': customer.customer_id
         },
         status=HTTP_200_OK
     )
