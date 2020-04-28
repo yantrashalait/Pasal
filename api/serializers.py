@@ -402,18 +402,22 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
 
 class HousingListSerializer(serializers.ModelSerializer):
     detail_url = serializers.SerializerMethodField()
-    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    brand = serializers.ReadOnlyField(source="brand.brand_id")
     pictures = serializers.SerializerMethodField()
+    brand_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblHousings
-        fields = ('housing_id', 'brand', 'area', 'available', 'description', 'housing_name', 'rent_per_sqft', 'type', 'detail_url', 'pictures')
+        fields = ('housing_id', 'brand', 'area', 'available', 'description', 'housing_name', 'rent_per_sqft', 'type', 'detail_url', 'pictures', 'brand_name')
 
     def get_detail_url(self, obj):
         return base_url + '/housing/detail/' + str(obj.housing_id)
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(housing=obj).values('picture_name')
+
+    def get_brand_name(self, obj):
+        return obj.brand.brand_name
 
 
 class HousingDetailSerializer(serializers.ModelSerializer):
@@ -490,20 +494,24 @@ class HousingAddSerializer(serializers.ModelSerializer):
 
 
 class CarListSerializer(serializers.ModelSerializer):
-    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    brand = serializers.ReadOnlyField(source="brand.brand_id")
     detail_url = serializers.SerializerMethodField()
     pictures = serializers.SerializerMethodField()
+    brand_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblCars
         fields = ('car_id', 'car_name', 'color', 'description', 'engine', 'make_year',
-        'price', 'type', 'brand', 'detail_url', 'pictures')
+        'price', 'type', 'brand', 'detail_url', 'pictures', 'brand_name')
 
     def get_detail_url(self, obj):
         return base_url + '/car/detail/' + str(obj.car_id)
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(car=obj).values('picture_name')
+    
+    def get_brand_name(self, obj):
+        return obj.brand.brand_name
 
 
 class CarDetailSerializer(serializers.ModelSerializer):
