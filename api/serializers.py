@@ -374,31 +374,30 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
                     if "spec"in model_name and model_name != "tblcommonspec":
                         return model_name
             
-                else:
-                    sub_category = obj.sub_category
-                    main_ads = TblMainAds.objects.filter(sub_category=sub_category)
-                    if main_ads:
-                        obj1 = main_ads[0]
-                        for model in obj1._meta.get_fields():
-                            if model.get_internal_type() == "ForeignKey":
-                                try:
-                                    if model.field.get_internal_type() == "ForeignKey":
-                                        related_models.append(model)
-                                except:
-                                    pass
-                        for field in related_models:
-                            if field.related_model.objects.filter(main_ads=obj1).exists():
-                                if field.related_model._meta.model_name == "tblquestions":
-                                    continue
-                                if field.related_model._meta.model_name == "tblpictures":
-                                    continue
-                                if field.related_model._meta.model_name == "tblwishlist":
-                                    continue
+        sub_category = obj.sub_category
+        main_ads = TblMainAds.objects.filter(sub_category=sub_category)
+        if main_ads:
+            obj1 = main_ads[0]
+            for model in obj1._meta.get_fields():
+                if model.get_internal_type() == "ForeignKey":
+                    try:
+                        if model.field.get_internal_type() == "ForeignKey":
+                            related_models.append(model)
+                    except:
+                        pass
+            for field in related_models:
+                if field.related_model.objects.filter(main_ads=obj1).exists():
+                    if field.related_model._meta.model_name == "tblquestions":
+                        continue
+                    if field.related_model._meta.model_name == "tblpictures":
+                        continue
+                    if field.related_model._meta.model_name == "tblwishlist":
+                        continue
 
-                                model_name = field.related_model._meta.model_name
+                    model_name = field.related_model._meta.model_name
 
-                                if "spec"in model_name and model_name != "tblcommonspec":
-                                    return model_name
+                    if "spec"in model_name and model_name != "tblcommonspec":
+                        return model_name
 
 
 class HousingListSerializer(serializers.ModelSerializer):
