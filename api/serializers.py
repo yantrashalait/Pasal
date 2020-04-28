@@ -464,14 +464,14 @@ class CarAddSerializer(serializers.ModelSerializer):
 
 class HousingAddSerializer(serializers.ModelSerializer):
     housing_id = serializers.ReadOnlyField()
-    pictures = PictureSerializer(many=True)
+    pictures = PictureSerializer(many=True, required=False)
 
     class Meta:
         model = TblHousings
         fields = "__all__"
     
     def create(self, validated_data):
-        pictures = validated_data.pop('pictures')
+        pictures = validated_data.pop('pictures', [])
         housing = TblHousings.objects.create(**validated_data)
         housing.added_date = datetime.now().date
         for picture in pictures:
@@ -479,7 +479,7 @@ class HousingAddSerializer(serializers.ModelSerializer):
         return housing
     
     def update(self, instance, validated_data):
-        pictures = validated_data.pop('pictures')
+        pictures = validated_data.pop('pictures', [])
         for picture in pictures:
             TblPictures.objects.update_or_create(housing=instance, **picture)
         return super(HousingAddSerializer, self).update(instance, validated_data)
