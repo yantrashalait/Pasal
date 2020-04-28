@@ -441,7 +441,7 @@ class PictureSerializer(serializers.ModelSerializer):
 
 class CarAddSerializer(serializers.ModelSerializer):
     car_id = serializers.ReadOnlyField()
-    pictures = PictureSerializer(many=True)
+    pictures = PictureSerializer(many=True, required=False)
 
     class Meta:
         model = TblCars
@@ -449,14 +449,14 @@ class CarAddSerializer(serializers.ModelSerializer):
         'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures')
     
     def create(self, validated_data):
-        pictures = validated_data.pop('pictures')
+        pictures = validated_data.pop('pictures', [])
         car = TblCars.objects.create(**validated_data)
         for picture in pictures:
             TblPictures.objects.create(car=car, **picture)
         return car
     
     def update(self, instance, validated_data):
-        pictures = validated_data.pop('pictures')
+        pictures = validated_data.pop('pictures', [])
         for picture in pictures:
             TblPictures.objects.update_or_create(car=instance, **picture)
         return super(CarAddSerializer, self).update(instance, validated_data)
