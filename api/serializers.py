@@ -417,19 +417,23 @@ class HousingListSerializer(serializers.ModelSerializer):
 
 
 class HousingDetailSerializer(serializers.ModelSerializer):
-    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    brand = serializers.ReadOnlyField(source="brand.brand_id")
     pictures = serializers.SerializerMethodField(read_only=True)
     housing_id = serializers.ReadOnlyField()
+    brand_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblHousings
         fields = ('housing_id', 'brand', 'added_date', 'appliances', 'area', 'available',
         'bathroom', 'bedroom', 'cooling', 'dates', 'description', 'flooring', 'heating',
         'housing_name', 'laundry', 'others', 'parking', 'pets', 'price', 'purpose',
-        'rent_per_sqft', 'type', 'unit_floor', 'pictures')
+        'rent_per_sqft', 'type', 'unit_floor', 'pictures', 'brand_name')
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(housing=obj).values('picture_name')
+    
+    def get_brand_name(self, obj):
+        return obj.brand.brand_name
 
 
 class PictureSerializer(serializers.ModelSerializer):
@@ -503,17 +507,21 @@ class CarListSerializer(serializers.ModelSerializer):
 
 
 class CarDetailSerializer(serializers.ModelSerializer):
-    brand = serializers.ReadOnlyField(source="brand.brand_name")
+    brand = serializers.ReadOnlyField(source="brand.brand_id")
     car_id = serializers.ReadOnlyField()
     pictures = serializers.SerializerMethodField(read_only=True)
+    brand_name = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblCars
         fields = ('car_id', 'car_name', 'color', 'description', 'engine', 'features',
-        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures')
+        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures', 'brand_name')
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(car=obj).values('picture_name')
+    
+    def get_brand_name(self, obj):
+        return obj.brand.brand_name
 
 
 class MainAdsCreateSerializer(serializers.ModelSerializer):
