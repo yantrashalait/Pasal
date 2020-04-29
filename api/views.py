@@ -44,14 +44,13 @@ def login(request):
             {'error': 'Please provide both email and password.'},
             status=HTTP_400_BAD_REQUEST)
     user = authenticate(email=email, password=password)
-    customer = TblCustomer.objects.get(email=user)
-
 
     if not user:
         return Response(
             {'error': 'Invalid Credentials.'},
             status = HTTP_404_NOT_FOUND,
         )
+    customer = TblCustomer.objects.get(email=user)
     token, created = Token.objects.get_or_create(user=user)
     return Response(
         {

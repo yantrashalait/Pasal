@@ -519,11 +519,12 @@ class CarDetailSerializer(serializers.ModelSerializer):
     car_id = serializers.ReadOnlyField()
     pictures = serializers.SerializerMethodField(read_only=True)
     brand_name = serializers.SerializerMethodField(read_only=True)
+    customer = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblCars
         fields = ('car_id', 'car_name', 'color', 'description', 'engine', 'features',
-        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures', 'brand_name')
+        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures', 'brand_name', 'customer')
 
     def get_pictures(self, obj):
         return TblPictures.objects.filter(car=obj).values('picture_name')
