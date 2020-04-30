@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 
 from django.shortcuts import render, get_object_or_404
 from .models import TblCategories, TblBrands, TblSubCategories, TblModels, TblMainAds, \
-TblHousings, TblCars, TblCustomer, TblUsers, TblUserRoles, TblCommonSpec, TblWarranty, TblDelivery
+TblHousings, TblCars, TblCustomer, TblUsers, TblUserRoles, TblCommonSpec, TblWarranty, TblDelivery, TblPictures
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -338,7 +338,7 @@ class MainAdsDetailViewSet(RetrieveUpdateAPIView):
         }, status=HTTP_200_OK)
     
     def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object(), data=request.data)
+        serializer = MainAdsCreateSerializer(self.get_object(), data=request.data)
         if not serializer.is_valid():
             return Response({
                 'status': False,
@@ -374,6 +374,10 @@ class MainAdsDetailViewSet(RetrieveUpdateAPIView):
             main_ads.price_negotiable = serializer.validated_data['price_negotiable']
         
         main_ads.save()
+
+        pictures = serializer.validated_data.pop('pictures', [])
+        for picture in pictures:
+            TblPictures.objects.update_or_create(main_ads=main_ads, **picture)
 
         serializer = self.get_serializer(main_ads)
 
@@ -454,6 +458,7 @@ class MainAdsCreateViewSet(CreateAPIView):
         customer = TblCustomer.objects.get(email=self.request.user)
 
         main_ads_kwargs = serializer.validated_data
+        pictures = serializer.validated_data.pop('pictures', [])
         main_ads = TblMainAds(**main_ads_kwargs)
         if model:
             main_ads.model = model
@@ -477,6 +482,9 @@ class MainAdsCreateViewSet(CreateAPIView):
         main_ads.added_date = datetime.now()
         main_ads.view_count = 0
         main_ads.save()
+
+        for picture in pictures:
+            TblPictures.objects.create(main_ads=main_ads, **picture)
 
         serializer = self.get_serializer(main_ads)
         
@@ -759,6 +767,46 @@ class MainAdsDeliveryDetailViewSet(RetrieveAPIView):
             'status': True,
             'data': serializer.data
         }, status=HTTP_200_OK)
+
+
+class MainAdsPictureCreateViewSet(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+
+    def post(self, request, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+
+        serializer = MainAdsPictureSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        picture = serializer.save()        
+        return Response({
+            'status': True,
+            'msg': 'Created successfully',
+        }, status=HTTP_200_OK)
+    
+    def get_queryset(self, *args, **kwargs):
+        main_ads = TblMainAds.objects.get(main_ads_id=self.kwargs.get('main_ads_id'))
+        self.check_object_permissions(self.request, main_ads)
+        return TblPictures.objects.filter(main_ads=main_ads)
+    
+    def put(self, request, *args, **kwargs):
+        serializer = MainAdsPictureSerializer(self.get_queryset(), data=request.data)
+        if not serializer.is_valid():
+            return Response({
+                'status': False,
+                'data': serializer.errors
+            }, status=HTTP_400_BAD_REQUEST)
+        
+        self.perform_update(serializer)
+        return Response({
+            'status': True,
+            'msg': 'Updated successfully',
+        })
 
 
 class UserAdsViewSet(ListAPIView):

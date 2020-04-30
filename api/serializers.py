@@ -257,6 +257,13 @@ class BrandSerializer(serializers.ModelSerializer):
         model = TblBrands
         fields = '__all__'
 
+        
+class PictureSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = TblPictures
+        fields = "__all__"
+
 
 class MainAdsDetailSerializer(serializers.ModelSerializer):
     specs = serializers.SerializerMethodField(read_only=True)
@@ -440,13 +447,6 @@ class HousingDetailSerializer(serializers.ModelSerializer):
         return obj.brand.brand_name
 
 
-class PictureSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = TblPictures
-        fields = "__all__"
-
-
 class CarAddSerializer(serializers.ModelSerializer):
     car_id = serializers.ReadOnlyField()
     pictures = PictureSerializer(many=True, required=False)
@@ -543,12 +543,13 @@ class MainAdsCreateSerializer(serializers.ModelSerializer):
     model = serializers.ReadOnlyField(source="model.model_name")
     model_name = serializers.SerializerMethodField(read_only=True)
     expiry_date = serializers.ReadOnlyField()
+    pictures = PictureSerializer(many=True, required=False)
     
     class Meta:
         model = TblMainAds
         fields = ('main_ads_id', 'added_date', 'expired', 'view_count', 'customer', 
         'sub_category', 'model', 'ad_run_days', 'ad_title', 'description', 'expiry_date',
-        'featured', 'price', 'price_negotiable', 'model_name')
+        'featured', 'price', 'price_negotiable', 'model_name', 'pictures')
         extra_kwargs = {
             'ad_run_days': {'required': True}, 
             'ad_title': {'required': True},
