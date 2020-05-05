@@ -1,9 +1,15 @@
 import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = ''
 
+SECRET_KEY = os.environ.get('SECRET_KEY', 'zhg-y4#7j-d*p-__@j#*3z@!y24fz8%^z2v6atuy4bo9vlrv_j')
+
+# specify the domain names in the allowed_hosts list.
+# For example: 
+# ALLOWED_HOSTS = ['www.example.com', 'example.com']
 ALLOWED_HOSTS = []
+
+# set Debug = False in deployment
 DEBUG = True
 
 # Database
@@ -29,10 +35,11 @@ LOGOUT_REDIRECT_URL = '/login/'
 STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# uncomment below in development
+
+# uncomment below in development and comment in deployment
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-# use in deployment
+# uncomment in deployment
 # STATIC_ROOT = os.path.join(BASE_DIR, 'static')
