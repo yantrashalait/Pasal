@@ -1,9 +1,16 @@
+import os
+import io
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from .models import *
 from django.core.exceptions import ValidationError
+from PIL import Image
 
-base_url = 'https://pasal.yantrashala.com/api/v1'
+
+server_url = "http://bhumijaonline.com:8001"
+
+base_url = 'http://bhumijaonline.com:8001/api/v1'
 
 User = get_user_model()
 
@@ -20,12 +27,12 @@ class RegisterSerializer(serializers.ModelSerializer):
         if data['password1'] != data['password2']:
             raise ValidationError('Passwords must match.')
         return data
-    
+
     def validate_email(self, email):
         if User.objects.filter(email=email).exists():
             raise ValidationError("User with this email already exists.")
         return email
-    
+
     def create(self, validated_data):
         email = validated_data['email']
         password = validated_data['password1']
@@ -93,7 +100,7 @@ class SubCategoryListSerializer(serializers.ModelSerializer):
 
     def get_detail_url(self, obj):
         return base_url + '/sub-category/' + str(obj.sub_category_id)
-    
+
     def get_model_name(self, obj):
         fields=[]
         related_models = []
@@ -188,8 +195,12 @@ class MainAdsListSerializer(serializers.ModelSerializer):
         return base_url + '/main-ads/' + str(obj.main_ads_id)
 
     def get_pictures(self, obj):
-        return TblPictures.objects.filter(main_ads=obj).values()
-    
+        pictures = TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
+        for item in pictures:
+            picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
+            item['picture_url'] = server_url + picture_media_url
+        return pictures
+
     def get_model_name(self, obj):
         fields=[]
         related_models = []
@@ -257,7 +268,7 @@ class BrandSerializer(serializers.ModelSerializer):
         model = TblBrands
         fields = '__all__'
 
-        
+
 class PictureSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -286,7 +297,11 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
         'customer', 'sub_category', 'model', 'specs', 'tblquestions_set', 'pictures', 'model_name')
 
     def get_pictures(self, obj):
-        return TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
+        pictures = TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
+        for item in pictures:
+            picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
+            item['picture_url'] = server_url + picture_media_url
+        return pictures
 
     def get_specs(self, obj):
         fields=[]
@@ -355,7 +370,7 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
                 # data[field.related_model._meta.model_name.replace("tbl", "")] = datas
         # objects = [{f.related_model._meta.model_name.replace("tbl", "") : f.related_model.objects.filter(main_ads=obj).values() for f in related_models}]
         return data
-    
+
     def get_model_name(self, obj):
         fields=[]
         related_models = []
@@ -376,11 +391,11 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
                     continue
 
                 model_name = field.related_model._meta.model_name
-            
+
                 if model_name:
                     if "spec"in model_name and model_name != "tblcommonspec":
                         return model_name
-            
+
         sub_category = obj.sub_category
         main_ads = TblMainAds.objects.filter(sub_category=sub_category)
         if main_ads:
@@ -421,7 +436,11 @@ class HousingListSerializer(serializers.ModelSerializer):
         return base_url + '/housing/detail/' + str(obj.housing_id)
 
     def get_pictures(self, obj):
-        return TblPictures.objects.filter(housing=obj).values('picture_name')
+        pictures = TblPictures.objects.filter(housing=obj).values('id', 'picture_name')
+        for item in pictures:
+            picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
+            item['picture_url'] = server_url + picture_media_url
+        return pictures
 
     def get_brand_name(self, obj):
         return obj.brand.brand_name
@@ -441,8 +460,12 @@ class HousingDetailSerializer(serializers.ModelSerializer):
         'rent_per_sqft', 'type', 'unit_floor', 'pictures', 'brand_name')
 
     def get_pictures(self, obj):
-        return TblPictures.objects.filter(housing=obj).values('picture_name')
-    
+        pictures = TblPictures.objects.filter(housing=obj).values('id', 'picture_name')
+        for item in pictures:
+            picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
+            item['picture_url'] = server_url + picture_media_url
+        return pictures
+
     def get_brand_name(self, obj):
         return obj.brand.brand_name
 
@@ -455,18 +478,32 @@ class CarAddSerializer(serializers.ModelSerializer):
         model = TblCars
         fields = ("car_id", 'car_name', 'color', 'description', 'engine', 'features',
         'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures')
-    
+
     def create(self, validated_data):
-        pictures = validated_data.pop('pictures', [])
         car = TblCars.objects.create(**validated_data)
-        for picture in pictures:
-            TblPictures.objects.create(car=car, **picture)
+        pictures_new = validated_data.get('pictures', [])
+        for picture in pictures_new:
+            file = io.BytesIO(picture.file.read())
+            file.seek(0)
+            image = Image.open(file)
+            picture_name = picture._name.replace(" ", "_")
+            path_to_save = os.path.join(settings.MEDIA_ROOT, "car/", car.brand.brand_name)
+            path_to_save = os.path.join(path_to_save, picture_name)
+            image.save(path_to_save)
+            TblPictures.objects.update_or_create(car=car, picture_name=picture_name)
         return car
-    
+
     def update(self, instance, validated_data):
-        pictures = validated_data.pop('pictures', [])
-        for picture in pictures:
-            TblPictures.objects.update_or_create(car=instance, **picture)
+        pictures_new = validated_data.get('pictures', [])
+        for picture in pictures_new:
+            file = io.BytesIO(picture.file.read())
+            file.seek(0)
+            image = Image.open(file)
+            picture_name = picture._name.replace(" ", "_")
+            path_to_save = os.path.join(settings.MEDIA_ROOT, "car/", instance.brand.brand_name)
+            path_to_save = os.path.join(path_to_save, picture_name)
+            image.save(path_to_save)
+            TblPictures.objects.update_or_create(car=instance, picture_name=picture_name)
         return super(CarAddSerializer, self).update(instance, validated_data)
 
 
@@ -477,19 +514,33 @@ class HousingAddSerializer(serializers.ModelSerializer):
     class Meta:
         model = TblHousings
         fields = "__all__"
-    
+
     def create(self, validated_data):
-        pictures = validated_data.pop('pictures', [])
         housing = TblHousings.objects.create(**validated_data)
         housing.added_date = datetime.now().date
-        for picture in pictures:
-            TblPictures.objects.create(housing=housing, **picture)
+        pictures_new = validated_data.get('pictures', [])
+        for picture in pictures_new:
+            file = io.BytesIO(picture.file.read())
+            file.seek(0)
+            image = Image.open(file)
+            picture_name = picture._name.replace(" ", "_")
+            path_to_save = os.path.join(settings.MEDIA_ROOT, "housing/", housing.brand.brand_name)
+            path_to_save = os.path.join(path_to_save, picture_name)
+            image.save(path_to_save)
+            TblPictures.objects.update_or_create(housing=housing, picture_name=picture_name)
         return housing
-    
+
     def update(self, instance, validated_data):
-        pictures = validated_data.pop('pictures', [])
-        for picture in pictures:
-            TblPictures.objects.update_or_create(housing=instance, **picture)
+        pictures_new = validated_data.get('pictures', [])
+        for picture in pictures_new:
+            file = io.BytesIO(picture.file.read())
+            file.seek(0)
+            image = Image.open(file)
+            picture_name = picture._name.replace(" ", "_")
+            path_to_save = os.path.join(settings.MEDIA_ROOT, "housing/", instance.brand.brand_name)
+            path_to_save = os.path.join(path_to_save, picture_name)
+            image.save(path_to_save)
+            TblPictures.objects.update_or_create(housing=instance, picture_name=picture_name)
         return super(HousingAddSerializer, self).update(instance, validated_data)
 
 
@@ -508,8 +559,12 @@ class CarListSerializer(serializers.ModelSerializer):
         return base_url + '/car/detail/' + str(obj.car_id)
 
     def get_pictures(self, obj):
-        return TblPictures.objects.filter(car=obj).values('picture_name')
-    
+        pictures = TblPictures.objects.filter(car=obj).values('id', 'picture_name')
+        for item in pictures:
+            picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
+            item['picture_url'] = server_url + picture_media_url
+        return pictures
+
     def get_brand_name(self, obj):
         return obj.brand.brand_name
 
@@ -519,16 +574,19 @@ class CarDetailSerializer(serializers.ModelSerializer):
     car_id = serializers.ReadOnlyField()
     pictures = serializers.SerializerMethodField(read_only=True)
     brand_name = serializers.SerializerMethodField(read_only=True)
-    customer = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = TblCars
         fields = ('car_id', 'car_name', 'color', 'description', 'engine', 'features',
-        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures', 'brand_name', 'customer')
+        'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures', 'brand_name')
 
     def get_pictures(self, obj):
-        return TblPictures.objects.filter(car=obj).values('picture_name')
-    
+        pictures = TblPictures.objects.filter(car=obj).values('id', 'picture_name')
+        for item in pictures:
+            picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
+            item['picture_url'] = server_url + picture_media_url
+        return pictures
+
     def get_brand_name(self, obj):
         return obj.brand.brand_name
 
@@ -544,21 +602,21 @@ class MainAdsCreateSerializer(serializers.ModelSerializer):
     model_name = serializers.SerializerMethodField(read_only=True)
     expiry_date = serializers.ReadOnlyField()
     pictures = PictureSerializer(many=True, required=False)
-    
+
     class Meta:
         model = TblMainAds
-        fields = ('main_ads_id', 'added_date', 'expired', 'view_count', 'customer', 
+        fields = ('main_ads_id', 'added_date', 'expired', 'view_count', 'customer',
         'sub_category', 'model', 'ad_run_days', 'ad_title', 'description', 'expiry_date',
         'featured', 'price', 'price_negotiable', 'model_name', 'pictures')
         extra_kwargs = {
-            'ad_run_days': {'required': True}, 
+            'ad_run_days': {'required': True},
             'ad_title': {'required': True},
             'description': {'required': True},
             'featured': {'required': True},
             'price': {'required': True},
             'price_negotiable': {'required': True},
             }
-    
+
     def get_model_name(self, obj):
         return  self.context.get("model_name")
 
@@ -570,7 +628,7 @@ class MainAdsCommonSpecSerializer(serializers.ModelSerializer):
     class Meta:
         model = TblCommonSpec
         fields = '__all__'
-    
+
     def get_model_name(self, obj):
         model_name = self.context.get("model_name")
         return model_name
@@ -579,7 +637,7 @@ class MainAdsCommonSpecSerializer(serializers.ModelSerializer):
 class GenericSpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = None
-    
+
 
 class MainAdsWarrantySerializer(serializers.ModelSerializer):
     main_ads = serializers.ReadOnlyField(source="main_ads.main_ads_id")
@@ -595,4 +653,3 @@ class MainAdsDeliverySerializer(serializers.ModelSerializer):
     class Meta:
         model = TblDelivery
         fields = "__all__"
-        
