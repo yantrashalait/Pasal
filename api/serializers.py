@@ -200,7 +200,7 @@ class MainAdsListSerializer(serializers.ModelSerializer):
         pictures = TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
         for item in pictures:
             if item['picture_name']:
-                picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
+                picture_media_url = os.path.join(settings.MEDIA_URL, "mainads/" + item['picture_name'])
                 item['picture_url'] = server_url + picture_media_url
         return pictures
 
@@ -303,7 +303,7 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
         pictures = TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
         for item in pictures:
             if item['picture_name']:
-                picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
+                picture_media_url = os.path.join(settings.MEDIA_URL, "mainads/" + item['picture_name'])
                 item['picture_url'] = server_url + picture_media_url
         return pictures
 
@@ -443,7 +443,7 @@ class HousingListSerializer(serializers.ModelSerializer):
         pictures = TblPictures.objects.filter(housing=obj).values('id', 'picture_name')
         for item in pictures:
             if item['picture_name']:
-                picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
+                picture_media_url = os.path.join(settings.MEDIA_URL, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
                 item['picture_url'] = server_url + picture_media_url
         return pictures
 
@@ -468,7 +468,7 @@ class HousingDetailSerializer(serializers.ModelSerializer):
         pictures = TblPictures.objects.filter(housing=obj).values('id', 'picture_name')
         for item in pictures:
             if item['picture_name']:
-                picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
+                picture_media_url = os.path.join(settings.MEDIA_URL, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
                 item['picture_url'] = server_url + picture_media_url
         return pictures
 
@@ -572,7 +572,7 @@ class CarListSerializer(serializers.ModelSerializer):
         pictures = TblPictures.objects.filter(car=obj).values('id', 'picture_name')
         for item in pictures:
             if item['picture_name']:
-                picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
+                picture_media_url = os.path.join(settings.MEDIA_URL, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
                 item['picture_url'] = server_url + picture_media_url
         return pictures
 
@@ -595,7 +595,7 @@ class CarDetailSerializer(serializers.ModelSerializer):
         pictures = TblPictures.objects.filter(car=obj).values('id', 'picture_name')
         for item in pictures:
             if item['picture_name']:
-                picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
+                picture_media_url = os.path.join(settings.MEDIA_URL, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
                 item['picture_url'] = server_url + picture_media_url
         return pictures
 
