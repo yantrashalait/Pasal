@@ -6,7 +6,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework import permissions
 from rest_framework.views import APIView
-
+from pathlib import Path
 from PIL import Image
 
 from django.shortcuts import render, get_object_or_404
@@ -389,6 +389,7 @@ class MainAdsDetailViewSet(RetrieveUpdateAPIView):
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "mainads/")
+            Path(path_to_save).mkdir(exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(main_ads=main_ads, picture_name=picture_name)
@@ -503,6 +504,7 @@ class MainAdsCreateViewSet(CreateAPIView):
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "mainads/")
+            Path(path_to_save).mkdir(exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(main_ads=main_ads, picture_name=picture_name)

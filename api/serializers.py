@@ -6,11 +6,13 @@ from rest_framework import serializers
 from .models import *
 from django.core.exceptions import ValidationError
 from PIL import Image
+from pathlib import Path
 
 
-server_url = "http://bhumijaonline.com:8001"
-
-base_url = 'http://bhumijaonline.com:8001/api/v1'
+# server_url = "http://bhumijaonline.com:8001"
+server_url = "http://pasal.yantrashala.com"
+base_url = "http://pasal.yantrashala.com/api/v1"
+# base_url = 'http://bhumijaonline.com:8001/api/v1'
 
 User = get_user_model()
 
@@ -480,27 +482,29 @@ class CarAddSerializer(serializers.ModelSerializer):
         'fuel', 'make_year', 'price', 'transmission', 'type', 'brand', 'pictures')
 
     def create(self, validated_data):
+        pictures_new = validated_data.pop('pictures', [])
         car = TblCars.objects.create(**validated_data)
-        pictures_new = validated_data.get('pictures', [])
         for picture in pictures_new:
             file = io.BytesIO(picture.file.read())
             file.seek(0)
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "car/", car.brand.brand_name)
+            Path(path_to_save).mkdir(exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(car=car, picture_name=picture_name)
         return car
 
     def update(self, instance, validated_data):
-        pictures_new = validated_data.get('pictures', [])
+        pictures_new = validated_data.pop('pictures', [])
         for picture in pictures_new:
             file = io.BytesIO(picture.file.read())
             file.seek(0)
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "car/", instance.brand.brand_name)
+            Path(path_to_save).mkdir(exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(car=instance, picture_name=picture_name)
@@ -516,15 +520,16 @@ class HousingAddSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
+        pictures_new = validated_data.get('pictures', [])
         housing = TblHousings.objects.create(**validated_data)
         housing.added_date = datetime.now().date
-        pictures_new = validated_data.get('pictures', [])
         for picture in pictures_new:
             file = io.BytesIO(picture.file.read())
             file.seek(0)
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "housing/", housing.brand.brand_name)
+            Path(path_to_save).mkdir(exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(housing=housing, picture_name=picture_name)
@@ -538,6 +543,7 @@ class HousingAddSerializer(serializers.ModelSerializer):
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "housing/", instance.brand.brand_name)
+            Path(path_to_save).mkdir(exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(housing=instance, picture_name=picture_name)
