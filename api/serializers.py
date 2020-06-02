@@ -199,8 +199,9 @@ class MainAdsListSerializer(serializers.ModelSerializer):
     def get_pictures(self, obj):
         pictures = TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
         for item in pictures:
-            picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
-            item['picture_url'] = server_url + picture_media_url
+            if item['picture_name']:
+                picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
+                item['picture_url'] = server_url + picture_media_url
         return pictures
 
     def get_model_name(self, obj):
@@ -301,8 +302,9 @@ class MainAdsDetailSerializer(serializers.ModelSerializer):
     def get_pictures(self, obj):
         pictures = TblPictures.objects.filter(main_ads=obj).values('id', 'picture_name')
         for item in pictures:
-            picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
-            item['picture_url'] = server_url + picture_media_url
+            if item['picture_name']:
+                picture_media_url = os.path.join(settings.MEDIA_ROOT, "mainads/" + item['picture_name'])
+                item['picture_url'] = server_url + picture_media_url
         return pictures
 
     def get_specs(self, obj):
@@ -440,8 +442,9 @@ class HousingListSerializer(serializers.ModelSerializer):
     def get_pictures(self, obj):
         pictures = TblPictures.objects.filter(housing=obj).values('id', 'picture_name')
         for item in pictures:
-            picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
-            item['picture_url'] = server_url + picture_media_url
+            if item['picture_name']:
+                picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
+                item['picture_url'] = server_url + picture_media_url
         return pictures
 
     def get_brand_name(self, obj):
@@ -464,8 +467,9 @@ class HousingDetailSerializer(serializers.ModelSerializer):
     def get_pictures(self, obj):
         pictures = TblPictures.objects.filter(housing=obj).values('id', 'picture_name')
         for item in pictures:
-            picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
-            item['picture_url'] = server_url + picture_media_url
+            if item['picture_name']:
+                picture_media_url = os.path.join(settings.MEDIA_ROOT, "housing/" + obj.brand.brand_name + "/" + item['picture_name'])
+                item['picture_url'] = server_url + picture_media_url
         return pictures
 
     def get_brand_name(self, obj):
@@ -490,7 +494,7 @@ class CarAddSerializer(serializers.ModelSerializer):
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "car/", car.brand.brand_name)
-            Path(path_to_save).mkdir(exist_ok=True)
+            Path(path_to_save).mkdir(parents=True, exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(car=car, picture_name=picture_name)
@@ -504,7 +508,7 @@ class CarAddSerializer(serializers.ModelSerializer):
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "car/", instance.brand.brand_name)
-            Path(path_to_save).mkdir(exist_ok=True)
+            Path(path_to_save).mkdir(parents=True, exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(car=instance, picture_name=picture_name)
@@ -529,7 +533,7 @@ class HousingAddSerializer(serializers.ModelSerializer):
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "housing/", housing.brand.brand_name)
-            Path(path_to_save).mkdir(exist_ok=True)
+            Path(path_to_save).mkdir(parents=True, exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(housing=housing, picture_name=picture_name)
@@ -543,7 +547,7 @@ class HousingAddSerializer(serializers.ModelSerializer):
             image = Image.open(file)
             picture_name = picture._name.replace(" ", "_")
             path_to_save = os.path.join(settings.MEDIA_ROOT, "housing/", instance.brand.brand_name)
-            Path(path_to_save).mkdir(exist_ok=True)
+            Path(path_to_save).mkdir(parents=True, exist_ok=True)
             path_to_save = os.path.join(path_to_save, picture_name)
             image.save(path_to_save)
             TblPictures.objects.update_or_create(housing=instance, picture_name=picture_name)
@@ -567,8 +571,9 @@ class CarListSerializer(serializers.ModelSerializer):
     def get_pictures(self, obj):
         pictures = TblPictures.objects.filter(car=obj).values('id', 'picture_name')
         for item in pictures:
-            picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
-            item['picture_url'] = server_url + picture_media_url
+            if item['picture_name']:
+                picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
+                item['picture_url'] = server_url + picture_media_url
         return pictures
 
     def get_brand_name(self, obj):
@@ -589,8 +594,9 @@ class CarDetailSerializer(serializers.ModelSerializer):
     def get_pictures(self, obj):
         pictures = TblPictures.objects.filter(car=obj).values('id', 'picture_name')
         for item in pictures:
-            picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
-            item['picture_url'] = server_url + picture_media_url
+            if item['picture_name']:
+                picture_media_url = os.path.join(settings.MEDIA_ROOT, "car/" + obj.brand.brand_name + "/" + item['picture_name'])
+                item['picture_url'] = server_url + picture_media_url
         return pictures
 
     def get_brand_name(self, obj):
