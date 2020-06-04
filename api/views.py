@@ -146,7 +146,7 @@ class HousingDetailViewSet(RetrieveUpdateAPIView):
                 'status': False,
                 'msg': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
-        serializer.validated_data['pictures'] = self.request.data.getlist('pictures')
+        serializer.validated_data['pictures'] = self.request.data.getlist('pictures[]')
         self.perform_update(serializer)
         serializer = HousingDetailSerializer(self.get_object())
         return Response({
@@ -192,7 +192,7 @@ class CarDetailViewSet(RetrieveUpdateAPIView):
                 'status': False,
                 'msg': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
-        serializer.validated_data['pictures'] = self.request.data.getlist('pictures')
+        serializer.validated_data['pictures'] = self.request.data.getlist('pictures[]')
         self.perform_update(serializer)
         serializer = CarDetailSerializer(self.get_object())
         return Response({
@@ -382,7 +382,7 @@ class MainAdsDetailViewSet(RetrieveUpdateAPIView):
 
         main_ads.save()
 
-        pictures_new = request.data.getlist('pictures')
+        pictures_new = request.data.getlist('pictures[]')
         for picture in pictures_new:
             file = io.BytesIO(picture.file.read())
             file.seek(0)
@@ -497,7 +497,7 @@ class MainAdsCreateViewSet(CreateAPIView):
         main_ads.view_count = 0
         main_ads.save()
 
-        pictures_new = request.data.getlist('pictures')
+        pictures_new = request.data.getlist('pictures[]')
         for picture in pictures_new:
             file = io.BytesIO(picture.file.read())
             file.seek(0)
@@ -873,7 +873,7 @@ class CarAddViewSet(CreateAPIView):
                 'status': False,
                 'data': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
-        serializer.validated_data['pictures'] = self.request.data.getlist('pictures')
+        serializer.validated_data['pictures'] = self.request.data.getlist('pictures[]')
         serializer.save()
         return Response({
             'status': True,
@@ -892,7 +892,7 @@ class HousingAddViewSet(CreateAPIView):
                 'status': False,
                 'data': serializer.errors
             }, status=HTTP_400_BAD_REQUEST)
-        serializer.validated_data['pictures'] = self.request.data.getlist('pictures')
+        serializer.validated_data['pictures'] = self.request.data.getlist('pictures[]')
         self.perform_create(serializer)
         return Response({
             'status': True,
