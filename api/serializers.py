@@ -524,7 +524,7 @@ class HousingAddSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data):
-        pictures_new = validated_data.get('pictures', [])
+        pictures_new = validated_data.pop('pictures', [])
         housing = TblHousings.objects.create(**validated_data)
         housing.added_date = datetime.now().date
         for picture in pictures_new:
@@ -540,7 +540,7 @@ class HousingAddSerializer(serializers.ModelSerializer):
         return housing
 
     def update(self, instance, validated_data):
-        pictures_new = validated_data.get('pictures', [])
+        pictures_new = validated_data.pop('pictures', [])
         for picture in pictures_new:
             file = io.BytesIO(picture.file.read())
             file.seek(0)
