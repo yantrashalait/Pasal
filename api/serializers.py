@@ -9,10 +9,10 @@ from PIL import Image
 from pathlib import Path
 
 
-# server_url = "http://bhumijaonline.com:8001"
-server_url = "http://pasal.yantrashala.com"
-base_url = "http://pasal.yantrashala.com/api/v1"
-# base_url = 'http://bhumijaonline.com:8001/api/v1'
+server_url = "http://bhumijaonline.com:8001"
+# server_url = "http://pasal.yantrashala.com"
+# base_url = "http://pasal.yantrashala.com/api/v1"
+base_url = 'http://bhumijaonline.com:8001/api/v1'
 
 User = get_user_model()
 
